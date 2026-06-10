@@ -47,7 +47,18 @@ export async function getPayrollRecords(
   const { data, error } = await query;
   if (error) throw error;
 
-  return (data ?? []).map((row: { employee_id: string }) => ({
+  return (data ?? []).map(
+    (
+      row: PayrollRecordRow & {
+        month?: number;
+        year?: number;
+        basic_salary?: number;
+        allowances?: Record<string, number>;
+        deductions?: Record<string, number>;
+        net_salary?: number;
+        profiles?: { full_name: string } | { full_name: string }[] | null;
+      },
+    ) => ({
     id: row.id,
     employee_id: row.employee_id,
     employee_name: asSingleRelation(row.profiles)?.full_name ?? "Unknown",

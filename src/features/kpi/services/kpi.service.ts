@@ -1,4 +1,5 @@
 import { createClient } from "@/shared/lib/supabase/server";
+import { asSingleRelation } from "@/shared/lib/utils";
 import type { AppRole } from "@/shared/types/roles";
 
 import { calcProgress } from "../lib/utils";
@@ -41,19 +42,19 @@ type TeamMemberRow = {
 type EmployeeKpiQueryRow = Omit<EmployeeKpi, "employee" | "template"> & {
   employee:
     | { id: string; full_name: string; avatar_url: string | null }
-    | null
-    | { id: string; full_name: string; avatar_url: string | null }[];
+    | { id: string; full_name: string; avatar_url: string | null }[]
+    | null;
   template:
     | { name: string; category: string }
-    | null
-    | { name: string; category: string }[];
+    | { name: string; category: string }[]
+    | null;
 };
 
 type KpiTemplateQueryRow = KpiTemplate & {
   department:
     | { id: string; name: string; code: string }
-    | null
-    | { id: string; name: string; code: string }[];
+    | { id: string; name: string; code: string }[]
+    | null;
 };
 
 type KpiLeaderboardQueryRow = {
@@ -63,13 +64,13 @@ type KpiLeaderboardQueryRow = {
   status: string;
   employee:
     | { id: string; full_name: string; avatar_url: string | null }
-    | null
-    | { id: string; full_name: string; avatar_url: string | null }[];
+    | { id: string; full_name: string; avatar_url: string | null }[]
+    | null;
 };
 
 type EmployeeDepartmentQueryRow = {
   profile_id: string;
-  department: { name: string } | null | { name: string }[];
+  department: { name: string } | { name: string }[] | null;
 };
 
 type AssignableEmployeeQueryRow = {
@@ -78,8 +79,8 @@ type AssignableEmployeeQueryRow = {
   job_title: string;
   profile:
     | { id: string; full_name: string; email: string }
-    | null
-    | { id: string; full_name: string; email: string }[];
+    | { id: string; full_name: string; email: string }[]
+    | null;
 };
 
 async function getTeamMemberIds(managerId: string): Promise<string[]> {
@@ -90,7 +91,7 @@ async function getTeamMemberIds(managerId: string): Promise<string[]> {
     .eq("manager_id", managerId)
     .eq("is_active", true);
 
-  return data?.map((row: { employee_id: string }) => row.employee_id) ?? [];
+  return data?.map((row: TeamMemberRow) => row.employee_id) ?? [];
 }
 
 export async function getEmployeeKpis(
@@ -122,10 +123,10 @@ export async function getEmployeeKpis(
   const { data, error } = await query;
   if (error) throw error;
 
-  return (data ?? []).map((row: { employee_id: string }) => ({
+  return (data ?? []).map((row: EmployeeKpiQueryRow) => ({
     ...row,
-    employee: Array.isArray(row.employee) ? row.employee[0] : row.employee,
-    template: Array.isArray(row.template) ? row.template[0] : row.template,
+    employee: asSingleRelation(row.employee),
+    template: asSingleRelation(row.template),
   })) as EmployeeKpi[];
 }
 
@@ -189,11 +190,9 @@ export async function getKpiTemplates(): Promise<KpiTemplate[]> {
 
   if (error) throw error;
 
-  return (data ?? []).map((row: { employee_id: string }) => ({
+  return (data ?? []).map((row: KpiTemplateQueryRow) => ({
     ...row,
-    department: Array.isArray(row.department)
-      ? row.department[0] ?? null
-      : row.department,
+    department: asSingleRelation(row.department),
   })) as KpiTemplate[];
 }
 
@@ -292,11 +291,9 @@ export async function getKpiLeaderboard(
     );
 
   const deptMap = new Map<string, string>();
-  for (const ep of empProfiles ?? []) {
-    const dept = Array.isArray(ep.department)
-      ? ep.department[0]
-      : ep.department;
-    deptMap.set(ep.profile_id, (dept as { name: string } | null)?.name ?? "—");
+  for (const ep of (empProfiles ?? []) as EmployeeDepartmentQueryRow[]) {
+    const dept = asSingleRelation(ep.department);
+    deptMap.set(ep.profile_id, dept?.name ?? "Unassigned");
   }
 
   const leaderboard = new Map<
@@ -310,10 +307,8 @@ export async function getKpiLeaderboard(
     }
   >();
 
-  for (const row of kpiData ?? []) {
-    const employee = Array.isArray(row.employee)
-      ? row.employee[0]
-      : row.employee;
+  for (const row of (kpiData ?? []) as KpiLeaderboardQueryRow[]) {
+    const employee = asSingleRelation(row.employee);
     if (!employee) continue;
 
     const entry = leaderboard.get(row.employee_id) ?? {
@@ -323,7 +318,10 @@ export async function getKpiLeaderboard(
       kpiCount: 0,
       onTrackCount: 0,
     };
-    entry.totalProgress += calcProgress(row);
+    entry.totalProgress += calcProgress({
+      current_value: Number(row.current_value),
+      target_value: Number(row.target_value),
+    });
     entry.kpiCount += 1;
     if (row.status === "ON_TRACK" || row.status === "COMPLETED") {
       entry.onTrackCount += 1;
@@ -336,7 +334,7 @@ export async function getKpiLeaderboard(
       employeeId,
       fullName: entry.fullName,
       avatarUrl: entry.avatarUrl,
-      department: deptMap.get(employeeId) ?? "—",
+      department: deptMap.get(employeeId) ?? "Unassigned",
       avgProgress:
         entry.kpiCount > 0
           ? Math.round(entry.totalProgress / entry.kpiCount)
@@ -375,10 +373,10 @@ export async function getAssignableEmployees(role: AppRole, userId: string) {
   const { data, error } = await query;
   if (error) throw error;
 
-  return (data ?? []).map((row: { employee_id: string }) => ({
+  return (data ?? []).map((row: AssignableEmployeeQueryRow) => ({
     profile_id: row.profile_id,
     employee_code: row.employee_code,
     job_title: row.job_title,
-    profile: Array.isArray(row.profile) ? row.profile[0] : row.profile,
+    profile: asSingleRelation(row.profile),
   }));
 }

@@ -39,6 +39,8 @@ export default async function EodDashboardPage() {
       <PageHeader
         title="End of Day"
         description="Submit daily updates and track team progress."
+        backHref="/dashboard"
+        backLabel="Back to Dashboard"
         actions={
           <Button asChild>
             <Link href="/eod/submit">Submit Today&apos;s EOD</Link>

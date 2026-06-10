@@ -23,6 +23,8 @@ export default async function EmployeesPage() {
       <PageHeader
         title="Employees"
         description="Organization directory and team roster"
+        backHref="/dashboard"
+        backLabel="Back to Dashboard"
         actions={
           <>
             <Button variant="outline" asChild>

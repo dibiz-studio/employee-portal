@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 
 import { OnboardingInviteCard } from "@/features/onboarding/components/onboarding-invite-card";
 import { fetchInvite } from "@/features/onboarding/services/onboarding.service";
@@ -11,9 +11,9 @@ import { APP_TAGLINE } from "@/shared/lib/constants";
 export default function InvitePage({
   params,
 }: {
-  params: { token: string };
+  params: Promise<{ token: string }>;
 }) {
-  const { token } = params;
+  const { token } = use(params);
   const [invite, setInvite] = useState<OnboardingInvite | null>(null);
   const [status, setStatus] = useState<"active" | "expired" | "revoked" | "used" | null>(null);
   const [error, setError] = useState<string | null>(null);

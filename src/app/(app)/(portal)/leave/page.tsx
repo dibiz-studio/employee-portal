@@ -65,6 +65,8 @@ export default async function LeaveDashboardPage() {
       <PageHeader
         title="Leave Management"
         description="View balances, apply for leave, and track requests."
+        backHref="/dashboard"
+        backLabel="Back to Dashboard"
         actions={
           <Button asChild>
             <Link href="/leave/apply">
@@ -160,7 +162,7 @@ export default async function LeaveDashboardPage() {
                     <TableRow key={req.id}>
                       <TableCell>{req.policy_name}</TableCell>
                       <TableCell className="text-sm">
-                        {formatDate(req.start_date)} – {formatDate(req.end_date)}
+                        {formatDate(req.start_date)} - {formatDate(req.end_date)}
                       </TableCell>
                       <TableCell>
                         <StatusBadge status={req.status} />

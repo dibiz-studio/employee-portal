@@ -54,6 +54,8 @@ export default async function KpiDashboardPage() {
       <PageHeader
         title="KPI Dashboard"
         description="Track performance goals and progress across your scope"
+        backHref="/dashboard"
+        backLabel="Back to Dashboard"
         actions={
           <>
             <Button variant="outline" asChild>

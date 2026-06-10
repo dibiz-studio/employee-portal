@@ -42,6 +42,8 @@ export default async function PayrollDashboardPage() {
       <PageHeader
         title="Payroll"
         description={`Payroll overview for ${formatMonthYear(now.getMonth() + 1, now.getFullYear())}.`}
+        backHref="/dashboard"
+        backLabel="Back to Dashboard"
       />
       <SectionNav items={nav} />
 
