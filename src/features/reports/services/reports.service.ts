@@ -38,7 +38,7 @@ export async function getDepartmentsWithStats(): Promise<DepartmentRow[]> {
     }
   }
 
-  return (departments ?? []).map((dept) => ({
+  return (departments ?? []).map((dept: { id: string; name: string; code: string; description: string | null; is_active: boolean; profiles?: { full_name: string } | { full_name: string }[] | null }) => ({
     id: dept.id,
     name: dept.name,
     code: dept.code,
@@ -84,9 +84,9 @@ export async function getOrganizationReportData() {
   ]);
 
   const totalGross =
-    payrollData?.reduce((s, r) => s + Number(r.gross_pay), 0) ?? 0;
+    payrollData?.reduce((s: number, r: { gross_pay: number | string }) => s + Number(r.gross_pay), 0) ?? 0;
   const totalNet =
-    payrollData?.reduce((s, r) => s + Number(r.net_pay), 0) ?? 0;
+    payrollData?.reduce((s: number, r: { net_pay: number | string }) => s + Number(r.net_pay), 0) ?? 0;
 
   return {
     employeeCount: employeeCount ?? 0,
@@ -99,6 +99,13 @@ export async function getOrganizationReportData() {
     generatedAt: now.toISOString(),
     period: `${now.toLocaleString("en-IN", { month: "long" })} ${now.getFullYear()}`,
   };
+}
+
+export interface DepartmentEmployee {
+  name: string;
+  email: string;
+  job_title: string;
+  status: string;
 }
 
 export async function getDepartmentReportData(departmentId: string) {
@@ -121,7 +128,7 @@ export async function getDepartmentReportData(departmentId: string) {
     )
     .eq("department_id", departmentId);
 
-  const profileIds = (employees ?? []).map((e) => e.profile_id);
+  const profileIds = (employees ?? []).map((e: { profile_id: string; profiles?: { full_name: string; email: string } | { full_name: string; email: string }[] | null; job_title: string; employment_status: string }) => e.profile_id);
 
   let leaveCount = 0;
   let kpiCount = 0;
@@ -147,6 +154,12 @@ export async function getDepartmentReportData(departmentId: string) {
     kpiCount = kpis.count ?? 0;
     eodCount = eods.count ?? 0;
   }
+  const employeeList: DepartmentEmployee[] = (employees ?? []).map((e: { profile_id: string; profiles?: { full_name: string; email: string } | { full_name: string; email: string }[] | null; job_title: string; employment_status: string }): DepartmentEmployee => ({
+    name: (asSingleRelation(e.profiles)?.full_name as string) || "Unknown",
+    email: (asSingleRelation(e.profiles)?.email as string) || "",
+    job_title: (e.job_title as string) || "",
+    status: (e.employment_status as string) || "ACTIVE",
+  }));
 
   return {
     department: {
@@ -157,12 +170,7 @@ export async function getDepartmentReportData(departmentId: string) {
       head_name: asSingleRelation(department.profiles)?.full_name ?? null,
     },
     employeeCount: employees?.length ?? 0,
-    employees: (employees ?? []).map((e) => ({
-      name: asSingleRelation(e.profiles)?.full_name,
-      email: asSingleRelation(e.profiles)?.email,
-      job_title: e.job_title,
-      status: e.employment_status,
-    })),
+    employees: employeeList,
     leaveRequests: leaveCount,
     activeKpis: kpiCount,
     eodSubmissions: eodCount,

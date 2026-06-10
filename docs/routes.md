@@ -14,6 +14,7 @@
 /login                      → Public
 /forgot-password            → Public
 /reset-password             → Public
+/onboarding/[token]         → Public invite landing
 
 /dashboard                  → Role-resolved dashboard
 /dashboard/admin            → SUPER_ADMIN
@@ -53,6 +54,8 @@
 /eod/history                → Own EOD history
 /eod/review                 → Team review (Manager, HR, Admin)
 /eod/[id]                   → Single EOD detail
+
+/onboarding                 → Authenticated onboarding intake
 
 /payroll                    → Payroll dashboard (HR, Admin)
 /payroll/employee/[id]      → Employee payroll detail

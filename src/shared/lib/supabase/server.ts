@@ -1,33 +1,31 @@
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { MockSupabaseClient } from "./mock-client";
 
 export async function createClient() {
   const cookieStore = await cookies();
 
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(
-          cookiesToSet: {
-            name: string;
-            value: string;
-            options: CookieOptions;
-          }[],
-        ) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options),
-            );
-          } catch {
-            // Called from a Server Component — cookie writes are handled by middleware.
-          }
-        },
-      },
+  const cookieManager = {
+    get(name: string) {
+      return cookieStore.get(name)?.value;
     },
-  );
+    set(name: string, value: string, options?: { path?: string; maxAge?: number }) {
+      try {
+        cookieStore.set(name, value, {
+          path: options?.path,
+          maxAge: options?.maxAge,
+        });
+      } catch {
+        // Safe to ignore in Server Components (handled by middleware write)
+      }
+    },
+    delete(name: string) {
+      try {
+        cookieStore.delete(name);
+      } catch {
+        // Safe to ignore in Server Components (handled by middleware write)
+      }
+    },
+  };
+
+  return new MockSupabaseClient(cookieManager);
 }

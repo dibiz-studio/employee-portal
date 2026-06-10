@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 
+import { Button } from "@/shared/components/ui/button";
 import {
   Avatar,
   AvatarFallback,
@@ -11,6 +13,7 @@ import {
 import { Separator } from "@/shared/components/ui/separator";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetHeader,
   SheetTitle,
@@ -55,11 +58,11 @@ export function MobileNavDrawer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side="left"
-        className="w-72 p-0"
+        className="w-72 p-0 [&>button]:hidden"
         aria-label="Main navigation"
         onOpenAutoFocus={(e) => e.preventDefault()}
       >
-        <SheetHeader className="border-b border-border p-4 text-left">
+        <SheetHeader className="border-b border-border p-4 text-left flex flex-row items-center justify-between">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10">
               <AvatarImage
@@ -81,6 +84,17 @@ export function MobileNavDrawer({
               ) : null}
             </div>
           </div>
+          <SheetClose asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              title="Close navigation"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span className="sr-only">Close navigation</span>
+            </Button>
+          </SheetClose>
         </SheetHeader>
 
         <nav className="scrollbar-hidden flex flex-1 flex-col gap-1 overflow-y-auto p-2">
@@ -95,8 +109,9 @@ export function MobileNavDrawer({
                 href={item.href}
                 onClick={handleNavigate}
                 className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent",
-                  isActive && "bg-accent text-accent-foreground",
+                  "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-orange-500/10 hover:text-orange-300",
+                  isActive &&
+                    "border border-orange-500/30 bg-orange-500/10 text-orange-300",
                 )}
               >
                 <Icon className="h-5 w-5 shrink-0" aria-hidden />
@@ -121,10 +136,11 @@ export function MobileNavDrawer({
                   href={item.href}
                   onClick={handleNavigate}
                   className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-accent",
-                    isActive && "bg-accent text-accent-foreground",
+                    "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-orange-500/10 hover:text-orange-300",
+                    isActive &&
+                      "border border-orange-500/30 bg-orange-500/10 text-orange-300",
                   )}
-                >
+                  >
                   <Icon className="h-5 w-5 shrink-0" aria-hidden />
                   {item.label}
                 </Link>

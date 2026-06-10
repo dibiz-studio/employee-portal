@@ -36,8 +36,8 @@ export function SectionNav({ items, className }: SectionNavProps) {
             className={cn(
               "rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
               isActive
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                ? "border border-orange-500/30 bg-orange-500/10 text-orange-300 shadow-[0_0_0_1px_rgba(249,115,22,0.08)]"
+                : "text-muted-foreground hover:bg-orange-500/10 hover:text-orange-300",
             )}
           >
             {item.label}

@@ -223,7 +223,7 @@ export function CreateEmployeeForm({ departments }: CreateEmployeeFormProps) {
       </Card>
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={() => router.back()}>
+        <Button type="button" variant="outline" onClick={() => router.push("/employees")}>
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>

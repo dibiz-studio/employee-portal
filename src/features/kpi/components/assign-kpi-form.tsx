@@ -251,7 +251,7 @@ export function AssignKpiForm({ employees, templates }: AssignKpiFormProps) {
       </Card>
 
       <div className="flex justify-end gap-2">
-        <Button type="button" variant="outline" onClick={() => router.back()}>
+        <Button type="button" variant="outline" onClick={() => router.push("/kpi")}>
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>

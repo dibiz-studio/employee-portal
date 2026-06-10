@@ -1,5 +1,6 @@
-import { getServerProfile } from "@/features/auth/services/auth-server.service";
+import { requireRole } from "@/features/dashboard/services/dashboard.service";
 import { getPayrollAnalytics } from "@/features/payroll/services/payroll.service";
+import { Breadcrumbs } from "@/shared/components/layout/breadcrumbs";
 import { PageHeader } from "@/shared/components/data/page-header";
 import { StatCard } from "@/shared/components/data/stat-card";
 import { SectionNav } from "@/shared/components/layout/section-nav";
@@ -20,18 +21,17 @@ import {
 import { formatCurrency } from "@/shared/lib/utils";
 
 const PAYROLL_NAV = [
-  { label: "Dashboard", href: "/payroll" },
+  { label: "Overview", href: "/payroll" },
   { label: "Analytics", href: "/payroll/analytics" },
 ];
 
 export default async function PayrollAnalyticsPage() {
-  const profile = await getServerProfile();
-  if (!profile) return null;
-
+  const profile = await requireRole(["SUPER_ADMIN", "HR"]);
   const analytics = await getPayrollAnalytics(profile.id, profile.role);
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs />
       <PageHeader
         title="Payroll Analytics"
         description="Department breakdown and payroll status distribution."

@@ -27,6 +27,11 @@
 9. `onboarding_status_column`
 10. `update_handle_new_user_onboarding`
 
+## Local Pending Migration
+
+- `20260610_onboarding_invites_intakes` adds secure invite tokens, onboarding intake staging, and onboarding completion metadata.
+- `20260610_onboarding_intakes_nullable` relaxes KYC fields so multi-step drafts can be saved before final submit.
+
 ## Migrate to a New Supabase Project
 
 ### Option 1: SQL Editor (manual)

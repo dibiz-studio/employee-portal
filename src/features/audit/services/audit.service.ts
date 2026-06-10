@@ -14,6 +14,10 @@ export interface AuditLogRow {
   created_at: string;
 }
 
+type AuditLogRowWithProfile = AuditLogRow & {
+  profiles?: { full_name?: string }[];
+};
+
 export async function getAuditLogs(limit = 100): Promise<AuditLogRow[]> {
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -26,7 +30,7 @@ export async function getAuditLogs(limit = 100): Promise<AuditLogRow[]> {
 
   if (error) throw error;
 
-  return (data ?? []).map((row) => ({
+  return (data ?? []).map((row: AuditLogRowWithProfile) => ({
     id: row.id,
     actor_id: row.actor_id,
     actor_name: asSingleRelation(row.profiles)?.full_name ?? "System",

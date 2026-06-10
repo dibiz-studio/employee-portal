@@ -14,6 +14,15 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 
+type LeavePolicy = {
+  id: string;
+  name: string;
+  code: string;
+  days_per_year: number;
+  min_notice_days: number;
+  is_active: boolean;
+};
+
 export default async function LeaveSettingsPage() {
   await requireRole(["SUPER_ADMIN", "HR"]);
   const policies = await getLeaveSettings();
@@ -41,7 +50,9 @@ export default async function LeaveSettingsPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {policies.map((policy) => (
+          
+
+          {policies.map((policy: LeavePolicy) => (
             <TableRow key={policy.id}>
               <TableCell className="font-medium">{policy.name}</TableCell>
               <TableCell>{policy.code}</TableCell>

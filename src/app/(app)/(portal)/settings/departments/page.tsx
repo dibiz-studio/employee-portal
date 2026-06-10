@@ -3,6 +3,7 @@ import { DepartmentForm } from "@/features/settings/components/department-form";
 import { asSingleRelation } from "@/shared/lib/utils";
 import { getDepartments } from "@/features/settings/services/settings.service";
 import { EmptyState } from "@/shared/components/data/empty-state";
+import { Breadcrumbs } from "@/shared/components/layout/breadcrumbs";
 import { PageHeader } from "@/shared/components/data/page-header";
 import { StatusBadge } from "@/shared/components/data/status-badge";
 import {
@@ -14,12 +15,22 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 
+type Department = {
+  id: string;
+  name: string;
+  code: string;
+  description?: string | null;
+  is_active: boolean;
+  profiles?: { full_name?: string }[];
+};
+
 export default async function DepartmentsSettingsPage() {
   await requireRole(["SUPER_ADMIN", "HR"]);
   const departments = await getDepartments();
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs />
       <PageHeader
         title="Departments"
         description="Create and manage your organization structure."
@@ -43,7 +54,7 @@ export default async function DepartmentsSettingsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {departments.map((dept) => (
+            {departments.map((dept: Department) => (
               <TableRow key={dept.id}>
                 <TableCell className="font-medium">{dept.name}</TableCell>
                 <TableCell>{dept.code}</TableCell>

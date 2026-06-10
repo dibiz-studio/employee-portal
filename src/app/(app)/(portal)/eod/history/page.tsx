@@ -12,7 +12,7 @@ import {
 import { formatDate } from "@/shared/lib/utils";
 
 const EOD_NAV = [
-  { label: "Dashboard", href: "/eod" },
+  { label: "Overview", href: "/eod" },
   { label: "Submit", href: "/eod/submit" },
   { label: "History", href: "/eod/history" },
 ];

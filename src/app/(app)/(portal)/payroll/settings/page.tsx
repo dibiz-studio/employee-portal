@@ -1,5 +1,6 @@
 import { requireRole } from "@/features/dashboard/services/dashboard.service";
 import { getPayrollSettings } from "@/features/settings/services/settings.service";
+import { Breadcrumbs } from "@/shared/components/layout/breadcrumbs";
 import { PageHeader } from "@/shared/components/data/page-header";
 import { SectionNav } from "@/shared/components/layout/section-nav";
 import {
@@ -12,7 +13,7 @@ import {
 import { Badge } from "@/shared/components/ui/badge";
 
 const PAYROLL_NAV = [
-  { label: "Dashboard", href: "/payroll" },
+  { label: "Overview", href: "/payroll" },
   { label: "Settings", href: "/payroll/settings" },
 ];
 
@@ -22,6 +23,7 @@ export default async function PayrollSettingsPage() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs />
       <PageHeader
         title="Payroll Settings"
         description="Allowance and deduction types used in payroll records."

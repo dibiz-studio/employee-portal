@@ -185,7 +185,7 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Payroll",
     href: "/payroll",
     icon: Wallet,
-    roles: ["SUPER_ADMIN", "HR", "MANAGER"],
+    roles: ["SUPER_ADMIN", "HR"],
     section: "main",
   },
   {

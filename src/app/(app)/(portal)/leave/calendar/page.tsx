@@ -13,7 +13,7 @@ import {
 import { formatDate } from "@/shared/lib/utils";
 
 const LEAVE_NAV = [
-  { label: "Dashboard", href: "/leave" },
+  { label: "Overview", href: "/leave" },
   { label: "Calendar", href: "/leave/calendar" },
   { label: "History", href: "/leave/history" },
 ];

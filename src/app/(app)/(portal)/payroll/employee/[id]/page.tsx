@@ -1,7 +1,9 @@
 import { notFound } from "next/navigation";
 
 import { getServerProfile } from "@/features/auth/services/auth-server.service";
+import { requireRole } from "@/features/dashboard/services/dashboard.service";
 import { getEmployeePayroll } from "@/features/payroll/services/payroll.service";
+import { Breadcrumbs } from "@/shared/components/layout/breadcrumbs";
 import { PageHeader } from "@/shared/components/data/page-header";
 import { StatusBadge } from "@/shared/components/data/status-badge";
 import {
@@ -32,6 +34,11 @@ export default async function EmployeePayrollPage({
   if (!profile) return null;
 
   const { id } = await params;
+  const isSelf = profile.id === id;
+  if (!isSelf) {
+    await requireRole(["SUPER_ADMIN", "HR"]);
+  }
+
   const records = await getEmployeePayroll(id, profile.role, profile.id);
 
   if (records.length === 0) {
@@ -50,9 +57,12 @@ export default async function EmployeePayrollPage({
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs trailingLabel={employeeName} />
       <PageHeader
-        title={`Payroll — ${employeeName}`}
+        title={`Payroll - ${employeeName}`}
         description="Salary breakdown and payment history."
+        backHref="/payroll"
+        backLabel="Back to payroll"
       />
 
       {records.length === 0 ? (

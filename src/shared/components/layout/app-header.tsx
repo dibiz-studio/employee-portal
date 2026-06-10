@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Bell, LogOut, Menu, Settings, User } from "lucide-react";
 
 import { useAuth } from "@/features/auth/components/auth-provider";
-import { Logo } from "@/shared/components/logo";
 import { ThemeToggle } from "@/shared/components/theme-provider";
 import {
   Avatar,
@@ -24,6 +23,7 @@ import {
 } from "@/shared/components/ui/dropdown-menu";
 import { ROLE_LABELS } from "@/shared/types/roles";
 import { useAuthStore } from "@/shared/stores/auth-store";
+import { SearchInput } from "@/shared/components/layout/search-input";
 
 interface AppHeaderProps {
   title?: string;
@@ -56,31 +56,32 @@ export function AppHeader({
   };
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-border bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:px-6">
+    <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b border-orange-500/15 bg-background/90 px-4 backdrop-blur-xl supports-[backdrop-filter]:bg-background/65 md:px-6">
       <Button
         variant="ghost"
         size="icon"
-        className="h-12 w-12 md:hidden"
+        className="h-12 w-12 text-orange-300 hover:bg-orange-500/10 md:hidden"
         onClick={onMenuClick}
         aria-label="Open navigation menu"
       >
         <Menu className="h-5 w-5" />
       </Button>
 
-      <div className="hidden md:block">
-        <Logo />
-      </div>
-
       {title ? (
-        <h1 className="truncate text-lg font-semibold md:text-xl">{title}</h1>
+        <h1 className="truncate text-lg font-semibold tracking-tight md:text-xl">
+          {title}
+        </h1>
       ) : null}
 
       <div className="ml-auto flex items-center gap-2">
+        <div className="hidden sm:block w-48 md:w-64">
+          <SearchInput />
+        </div>
         <ThemeToggle />
         <Button
           variant="ghost"
           size="icon"
-          className="relative h-12 w-12 md:h-9 md:w-9"
+          className="relative h-12 w-12 text-orange-300 hover:bg-orange-500/10 md:h-9 md:w-9"
           asChild
           aria-label="Notifications"
         >
@@ -89,7 +90,7 @@ export function AppHeader({
             {notificationCount > 0 ? (
               <Badge
                 variant="destructive"
-                className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px]"
+                className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] shadow-lg shadow-orange-500/20"
               >
                 {notificationCount > 99 ? "99+" : notificationCount}
               </Badge>

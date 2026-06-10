@@ -47,7 +47,7 @@ export async function getPayrollRecords(
   const { data, error } = await query;
   if (error) throw error;
 
-  return (data ?? []).map((row) => ({
+  return (data ?? []).map((row: { employee_id: string }) => ({
     id: row.id,
     employee_id: row.employee_id,
     employee_name: asSingleRelation(row.profiles)?.full_name ?? "Unknown",

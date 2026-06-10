@@ -19,7 +19,7 @@ import {
 } from "@/shared/components/ui/table";
 
 const LEAVE_NAV = [
-  { label: "Dashboard", href: "/leave" },
+  { label: "Overview", href: "/leave" },
   { label: "Analytics", href: "/leave/analytics" },
   { label: "History", href: "/leave/history" },
 ];

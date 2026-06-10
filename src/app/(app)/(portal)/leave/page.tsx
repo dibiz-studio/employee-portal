@@ -31,7 +31,7 @@ import { hasPermission } from "@/shared/lib/rbac";
 import { formatDate } from "@/shared/lib/utils";
 
 const LEAVE_NAV = [
-  { label: "Dashboard", href: "/leave" },
+  { label: "Overview", href: "/leave" },
   { label: "Apply", href: "/leave/apply" },
   { label: "History", href: "/leave/history" },
   { label: "Calendar", href: "/leave/calendar" },
@@ -139,7 +139,13 @@ export default async function LeaveDashboardPage() {
           </CardHeader>
           <CardContent>
             {recentRequests.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No leave requests yet.</p>
+              <EmptyState
+                icon={CalendarDays}
+                title="No leave requests"
+                description="Apply for leave to request time off."
+                actionLabel="Apply Leave"
+                actionHref="/leave/apply"
+              />
             ) : (
               <Table>
                 <TableHeader>

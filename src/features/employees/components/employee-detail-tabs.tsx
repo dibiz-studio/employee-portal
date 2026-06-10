@@ -1,14 +1,18 @@
 "use client";
 
+import Link from "next/link";
 import { format } from "date-fns";
-import { CalendarDays, Mail, MapPin, Phone, Target } from "lucide-react";
+import { CalendarDays, Clock4, Mail, MapPin, Phone, Target } from "lucide-react";
 
 import type { EmployeeProfile, LeaveRequestSummary } from "@/features/employees/types";
 import { KpiProgressCard } from "@/features/kpi/components/kpi-progress-card";
 import type { EmployeeKpi } from "@/features/kpi/types";
+import type { DailyUpdateRow } from "@/features/eod/services/eod.service";
+import { EmployeeEodHistory } from "@/features/eod/components/employee-eod-history";
 import { EmptyState } from "@/shared/components/data/empty-state";
 import { StatusBadge } from "@/shared/components/data/status-badge";
 import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardContent,
@@ -36,12 +40,14 @@ interface EmployeeDetailTabsProps {
   employee: EmployeeProfile;
   kpis: EmployeeKpi[];
   leaveRequests: LeaveRequestSummary[];
+  eodHistory: DailyUpdateRow[];
 }
 
 export function EmployeeDetailTabs({
   employee,
   kpis,
   leaveRequests,
+  eodHistory,
 }: EmployeeDetailTabsProps) {
   const { profile, department } = employee;
 
@@ -51,6 +57,7 @@ export function EmployeeDetailTabs({
         <TabsTrigger value="overview">Overview</TabsTrigger>
         <TabsTrigger value="kpi">KPI ({kpis.length})</TabsTrigger>
         <TabsTrigger value="leave">Leave ({leaveRequests.length})</TabsTrigger>
+        <TabsTrigger value="eod">EOD ({eodHistory.length})</TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview" className="space-y-4">
@@ -188,6 +195,36 @@ export function EmployeeDetailTabs({
               </div>
             </CardContent>
           </Card>
+        )}
+      </TabsContent>
+
+      <TabsContent value="eod" className="space-y-4">
+        {eodHistory.length === 0 ? (
+          <EmptyState
+            icon={Clock4}
+            title="No EOD submissions"
+            description="EOD records will appear here once the employee starts submitting daily updates."
+            actionLabel="Open EOD board"
+            actionHref="/eod"
+          />
+        ) : (
+          <>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-sm text-muted-foreground">
+                Showing all recorded EOD submissions for this employee.
+              </p>
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/eod/employee/${profile.id}`}>
+                  Open full EOD view
+                </Link>
+              </Button>
+            </div>
+            <EmployeeEodHistory
+              employeeId={profile.id}
+              employeeName={profile.full_name}
+              updates={eodHistory}
+            />
+          </>
         )}
       </TabsContent>
     </Tabs>

@@ -1,5 +1,6 @@
-"use client";
+﻿"use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -75,7 +76,14 @@ export function EodReviewPanel({ updates, reviewerId }: EodReviewPanelProps) {
       <TableBody>
         {updates.map((update) => (
           <TableRow key={update.id}>
-            <TableCell className="font-medium">{update.employee_name}</TableCell>
+            <TableCell className="font-medium">
+            <Link
+              href={`/eod/employee/${update.employee_id}`}
+              className="transition-colors hover:text-primary hover:underline"
+            >
+              {update.employee_name}
+            </Link>
+          </TableCell>
             <TableCell>{formatDate(update.report_date)}</TableCell>
             <TableCell>{update.hours_worked}h</TableCell>
             <TableCell className="max-w-[240px]">
@@ -120,3 +128,4 @@ export function EodReviewPanel({ updates, reviewerId }: EodReviewPanelProps) {
     </Table>
   );
 }
+

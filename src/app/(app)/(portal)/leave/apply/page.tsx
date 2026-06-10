@@ -5,7 +5,7 @@ import { PageHeader } from "@/shared/components/data/page-header";
 import { SectionNav } from "@/shared/components/layout/section-nav";
 
 const LEAVE_NAV = [
-  { label: "Dashboard", href: "/leave" },
+  { label: "Overview", href: "/leave" },
   { label: "Apply", href: "/leave/apply" },
   { label: "History", href: "/leave/history" },
   { label: "Calendar", href: "/leave/calendar" },

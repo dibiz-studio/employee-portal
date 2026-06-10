@@ -5,7 +5,7 @@ import { PageHeader } from "@/shared/components/data/page-header";
 import { SectionNav } from "@/shared/components/layout/section-nav";
 
 const EOD_NAV = [
-  { label: "Dashboard", href: "/eod" },
+  { label: "Overview", href: "/eod" },
   { label: "Review", href: "/eod/review" },
   { label: "History", href: "/eod/history" },
 ];

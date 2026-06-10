@@ -9,6 +9,27 @@ import {
 } from "@/shared/lib/supabase/admin";
 import type { AppRole } from "@/shared/types/roles";
 
+interface CreateEmployeeUserArgs {
+  email: string;
+  password: string;
+  email_confirm: boolean;
+  user_metadata: Record<string, unknown>;
+}
+
+interface AdminClient {
+  auth: {
+    admin: {
+      createUser: (
+        args: CreateEmployeeUserArgs,
+      ) => Promise<{
+        data: { user: { id?: string } | null };
+        error: { message: string } | null;
+      }>;
+    };
+  };
+  from: ReturnType<typeof createAdminClient>["from"];
+}
+
 export interface CreateEmployeeInput {
   email: string;
   password: string;
@@ -32,25 +53,24 @@ export async function createEmployee(input: CreateEmployeeInput) {
   if (!hasAdminClient()) {
     return {
       error:
-        "Server is missing SUPABASE_SERVICE_ROLE_KEY. Add it to .env.local from Supabase → Settings → API, then restart the dev server.",
+        "Server is missing SUPABASE_SERVICE_ROLE_KEY. Add it to .env.local from Supabase -> Settings -> API, then restart the dev server.",
     };
   }
 
-  const admin = createAdminClient();
+  const admin = createAdminClient() as unknown as AdminClient;
   const userMetadata = {
     full_name: input.full_name,
     role: input.role,
     onboarding_status: "COMPLETED",
   };
 
-  const { data: authData, error: authError } = await admin.auth.admin.createUser(
-    {
+  const { data: authData, error: authError } =
+    await admin.auth.admin.createUser({
       email: input.email,
       password: input.password,
       email_confirm: true,
       user_metadata: userMetadata,
-    },
-  );
+    });
 
   if (authError) {
     return { error: authError.message };

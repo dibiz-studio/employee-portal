@@ -37,6 +37,7 @@ export function LoginForm() {
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const inviteToken = searchParams.get("invite");
 
   const {
     register,
@@ -53,7 +54,10 @@ export function LoginForm() {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      await signInWithGoogle();
+      const redirectTo = inviteToken
+        ? `${window.location.origin}/auth/callback?invite=${encodeURIComponent(inviteToken)}`
+        : undefined;
+      await signInWithGoogle(redirectTo);
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Google sign-in failed";
@@ -72,7 +76,7 @@ export function LoginForm() {
       const profile = user ? await fetchProfile(user.id) : null;
       const redirectTo =
         profile?.onboarding_status !== "COMPLETED"
-          ? "/onboarding"
+          ? `/onboarding${inviteToken ? `?invite=${encodeURIComponent(inviteToken)}` : ""}`
           : (searchParams.get("redirect") ?? "/dashboard");
       router.push(redirectTo);
       router.refresh();

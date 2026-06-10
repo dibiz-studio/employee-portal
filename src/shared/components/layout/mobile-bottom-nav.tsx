@@ -67,7 +67,7 @@ export function MobileBottomNav({ initialRole }: MobileBottomNavProps) {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-50 border-t border-orange-500/15 bg-background/95 backdrop-blur-xl md:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       aria-label="Mobile navigation"
     >
@@ -84,7 +84,7 @@ export function MobileBottomNav({ initialRole }: MobileBottomNavProps) {
               className={cn(
                 "flex min-h-11 min-w-11 flex-col items-center justify-center gap-1 px-2 text-xs transition-colors",
                 isActive
-                  ? "text-primary"
+                  ? "text-orange-400"
                   : "text-muted-foreground hover:text-foreground",
               )}
             >

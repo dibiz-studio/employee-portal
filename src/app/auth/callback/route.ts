@@ -4,9 +4,19 @@ import { createClient } from "@/shared/lib/supabase/server";
 import { ROLE_DASHBOARD_PATHS } from "@/shared/lib/rbac";
 import type { AppRole } from "@/shared/types/roles";
 
+type UserMetadata = {
+  full_name?: string;
+  name?: string;
+  role?: string;
+  onboarding_status?: string;
+  avatar_url?: string;
+  picture?: string;
+};
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  const invite = searchParams.get("invite");
 
   if (!code) {
     return NextResponse.redirect(`${origin}/login?error=missing_code`);
@@ -27,11 +37,8 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login`);
   }
 
-  const metadata = user.user_metadata ?? {};
-  const avatarUrl =
-    (metadata.avatar_url as string | undefined) ??
-    (metadata.picture as string | undefined) ??
-    null;
+  const metadata = (user.user_metadata ?? {}) as UserMetadata;
+  const avatarUrl = metadata.avatar_url ?? metadata.picture ?? null;
   const fullName =
     (metadata.full_name as string | undefined) ??
     (metadata.name as string | undefined) ??
@@ -68,7 +75,9 @@ export async function GET(request: Request) {
     .single();
 
   if (profile?.onboarding_status !== "COMPLETED") {
-    return NextResponse.redirect(`${origin}/onboarding`);
+    return NextResponse.redirect(
+      `${origin}/onboarding${invite ? `?invite=${encodeURIComponent(invite)}` : ""}`,
+    );
   }
 
   const role = (profile?.role as AppRole | undefined) ?? "EMPLOYEE";

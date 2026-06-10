@@ -29,7 +29,7 @@ export default async function DepartmentReportPage({
 }: DepartmentReportPageProps) {
   const { id } = await params;
 
-  let data;
+  let data: Awaited<ReturnType<typeof getDepartmentReportData>>;
   try {
     data = await getDepartmentReportData(id);
   } catch {

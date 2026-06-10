@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { ArrowLeft, Building2, Users } from "lucide-react";
+import { Building2, Plus, Users } from "lucide-react";
 
 import { getDepartmentsWithStats } from "@/features/employees/services/employee.service";
 import { requireRole } from "@/features/dashboard/services/dashboard.service";
+import { Breadcrumbs } from "@/shared/components/layout/breadcrumbs";
 import { PageHeader } from "@/shared/components/data/page-header";
+import { EmptyState } from "@/shared/components/data/empty-state";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -30,16 +32,20 @@ export default async function DepartmentsPage() {
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" size="sm" asChild className="-ml-2 w-fit">
-        <Link href="/employees">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to employees
-        </Link>
-      </Button>
-
+      <Breadcrumbs />
       <PageHeader
         title="Departments"
         description="Organizational structure and headcount by department"
+        backHref="/employees"
+        backLabel="Back to Employees"
+        actions={
+          <Button asChild>
+            <Link href="/settings/departments">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Department
+            </Link>
+          </Button>
+        }
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -88,15 +94,13 @@ export default async function DepartmentsPage() {
       </div>
 
       {departments.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center py-12 text-center">
-            <Building2 className="mb-4 h-10 w-10 text-muted-foreground" />
-            <p className="font-medium">No departments found</p>
-            <p className="text-sm text-muted-foreground">
-              Departments will appear here once configured.
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Building2}
+          title="No departments yet"
+          description="Create your first department to organize your team structure."
+          actionLabel="Add Department"
+          actionHref="/settings/departments"
+        />
       ) : null}
     </div>
   );

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Medal, Trophy } from "lucide-react";
+import { Medal, Trophy } from "lucide-react";
 
 import { getServerProfile } from "@/features/auth/services/auth-server.service";
 import { getKpiLeaderboard } from "@/features/kpi/services/kpi.service";
@@ -7,7 +7,6 @@ import { PageHeader } from "@/shared/components/data/page-header";
 import { EmptyState } from "@/shared/components/data/empty-state";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
 import { Badge } from "@/shared/components/ui/badge";
-import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardContent,
@@ -49,16 +48,11 @@ export default async function KpiLeaderboardPage() {
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" size="sm" asChild className="-ml-2 w-fit">
-        <Link href="/kpi">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to KPI
-        </Link>
-      </Button>
-
       <PageHeader
         title="KPI Leaderboard"
         description="Top performers ranked by average KPI completion"
+        backHref="/kpi"
+        backLabel="Back to KPI dashboard"
       />
 
       {leaderboard.length === 0 ? (

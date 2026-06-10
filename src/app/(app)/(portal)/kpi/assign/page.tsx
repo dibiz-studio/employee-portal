@@ -1,14 +1,11 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-
 import { requireRole } from "@/features/dashboard/services/dashboard.service";
 import { AssignKpiForm } from "@/features/kpi/components/assign-kpi-form";
 import {
   getAssignableEmployees,
   getKpiTemplates,
 } from "@/features/kpi/services/kpi.service";
+import { Breadcrumbs } from "@/shared/components/layout/breadcrumbs";
 import { PageHeader } from "@/shared/components/data/page-header";
-import { Button } from "@/shared/components/ui/button";
 
 export default async function AssignKpiPage() {
   const profile = await requireRole(["SUPER_ADMIN", "HR", "MANAGER"]);
@@ -20,16 +17,12 @@ export default async function AssignKpiPage() {
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" size="sm" asChild className="-ml-2 w-fit">
-        <Link href="/kpi">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to KPI
-        </Link>
-      </Button>
-
+      <Breadcrumbs />
       <PageHeader
         title="Assign KPI"
         description="Set performance targets for team members"
+        backHref="/kpi"
+        backLabel="Back to KPI dashboard"
       />
 
       <AssignKpiForm employees={employees} templates={templates} />

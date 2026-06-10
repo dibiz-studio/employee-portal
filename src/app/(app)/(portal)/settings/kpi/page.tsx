@@ -12,6 +12,17 @@ import {
 } from "@/shared/components/ui/table";
 
 export default async function KpiSettingsPage() {
+  // Define the shape of a KPI template returned from the service
+  type KpiTemplate = {
+    id: string;
+    name: string;
+    category: string;
+    period: string;
+    weight: number;
+    default_target?: string;
+    is_active: boolean;
+  };
+
   await requireRole(["SUPER_ADMIN", "HR"]);
   const templates = await getKpiSettings();
 
@@ -34,7 +45,7 @@ export default async function KpiSettingsPage() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {templates.map((template) => (
+          {templates.map((template: KpiTemplate) => (
             <TableRow key={template.id}>
               <TableCell className="font-medium">{template.name}</TableCell>
               <TableCell>{template.category}</TableCell>

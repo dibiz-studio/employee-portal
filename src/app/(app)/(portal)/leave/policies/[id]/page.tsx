@@ -21,6 +21,8 @@ export default async function PolicyEditPage({ params }: PolicyEditPageProps) {
       <PageHeader
         title={policy.name}
         description={`Edit leave policy ${policy.code}`}
+        backHref="/leave/policies"
+        backLabel="Back to policies"
       />
       <PolicyForm policy={policy} />
     </div>

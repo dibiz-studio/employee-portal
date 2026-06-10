@@ -54,7 +54,7 @@ async function getTeamMemberIds(managerId: string): Promise<string[]> {
     .eq("manager_id", managerId)
     .eq("is_active", true);
 
-  return data?.map((row) => row.employee_id) ?? [];
+  return data?.map((row: { employee_id: string }) => row.employee_id) ?? [];
 }
 
 export async function getLeaveBalances(
@@ -74,7 +74,7 @@ export async function getLeaveBalances(
 
   if (error) throw error;
 
-  return (data ?? []).map((row) => {
+  return (data ?? []).map((row: LeaveBalance & { leave_policies?: { name: string; code: string } | { name: string; code: string }[] | null }) => {
     const policy = asSingleRelation(row.leave_policies);
     const allocated = Number(row.allocated_days);
     const used = Number(row.used_days);
@@ -126,7 +126,7 @@ export async function getLeaveRequests(
   const { data, error } = await query;
   if (error) throw error;
 
-  return (data ?? []).map((row) => ({
+  return (data ?? []).map((row: LeaveRequestRow & { profiles?: { full_name: string } | { full_name: string }[] | null; leave_policies?: { name: string } | { name: string }[] | null }) => ({
     id: row.id,
     employee_id: row.employee_id,
     employee_name: asSingleRelation(row.profiles)?.full_name ?? "Unknown",
@@ -167,7 +167,7 @@ export async function getLeavePolicies(
   const { data, error } = await query;
   if (error) throw error;
 
-  return (data ?? []).map((row) => ({
+  return (data ?? []).map((row: LeavePolicyRow) => ({
     id: row.id,
     name: row.name,
     code: row.code,
@@ -214,7 +214,7 @@ export async function getLeaveCalendarEvents(
   const { data, error } = await query;
   if (error) throw error;
 
-  return (data ?? []).map((row) => ({
+  return (data ?? []).map((row: LeaveRequestRow & { profiles?: { full_name: string } | { full_name: string }[] | null; leave_policies?: { name: string } | { name: string }[] | null }) => ({
     id: row.id,
     employee_id: row.employee_id,
     employee_name: asSingleRelation(row.profiles)?.full_name ?? "Unknown",

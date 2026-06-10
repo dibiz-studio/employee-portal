@@ -41,7 +41,7 @@ export async function createKpiTemplate(input: CreateTemplateInput) {
   if (error) return { error: error.message };
 
   revalidatePath("/kpi/templates");
-  return { success: true };
+  return { success: true, error: undefined };
 }
 
 export interface AssignKpiInput {

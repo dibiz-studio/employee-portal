@@ -1,6 +1,3 @@
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-
 import { getServerProfile } from "@/features/auth/services/auth-server.service";
 import { KpiChart } from "@/features/kpi/components/kpi-chart";
 import {
@@ -10,7 +7,6 @@ import {
 } from "@/features/kpi/services/kpi.service";
 import { PageHeader } from "@/shared/components/data/page-header";
 import { StatCard } from "@/shared/components/data/stat-card";
-import { Button } from "@/shared/components/ui/button";
 import {
   Card,
   CardContent,
@@ -56,16 +52,11 @@ export default async function KpiAnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" size="sm" asChild className="-ml-2 w-fit">
-        <Link href="/kpi">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to KPI
-        </Link>
-      </Button>
-
       <PageHeader
         title="KPI Analytics"
         description="Performance trends and category breakdowns"
+        backHref="/kpi"
+        backLabel="Back to KPI dashboard"
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

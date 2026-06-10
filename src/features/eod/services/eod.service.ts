@@ -17,6 +17,25 @@ export interface DailyUpdateRow {
   created_at: string;
 }
 
+type TeamMemberRow = {
+  employee_id: string;
+};
+
+type DailyUpdateQueryRow = {
+  id: string;
+  employee_id: string;
+  report_date: string;
+  tasks_completed: string[] | null;
+  hours_worked: number | string;
+  blockers: string | null;
+  tomorrow_plan: string | null;
+  manager_comment: string | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  profiles: { full_name: string } | { full_name: string }[] | null;
+};
+
 async function getTeamMemberIds(managerId: string): Promise<string[]> {
   const supabase = await createClient();
   const { data } = await supabase
@@ -25,7 +44,7 @@ async function getTeamMemberIds(managerId: string): Promise<string[]> {
     .eq("manager_id", managerId)
     .eq("is_active", true);
 
-  return data?.map((row) => row.employee_id) ?? [];
+  return data?.map((row: TeamMemberRow) => row.employee_id) ?? [];
 }
 
 function mapDailyUpdate(row: Record<string, unknown>): DailyUpdateRow {
@@ -105,7 +124,7 @@ export async function getEodHistory(
   const { data, error } = await query;
   if (error) throw error;
 
-  return (data ?? []).map((row) => mapDailyUpdate(row));
+  return (data ?? []).map((row: DailyUpdateQueryRow) => mapDailyUpdate(row));
 }
 
 export async function getTeamEodForReview(
@@ -134,7 +153,17 @@ export async function getTeamEodForReview(
   const { data, error } = await query.limit(50);
   if (error) throw error;
 
-  return (data ?? []).map((row) => mapDailyUpdate(row));
+  return (data ?? []).map((row: DailyUpdateQueryRow) => mapDailyUpdate(row));
+}
+
+export async function getEmployeeEodHistory(
+  employeeId: string,
+  options?: { limit?: number },
+) {
+  return getEodHistory(employeeId, "EMPLOYEE", {
+    employeeId,
+    limit: options?.limit,
+  });
 }
 
 export async function getEodByDate(employeeId: string, date: string) {

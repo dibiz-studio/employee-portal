@@ -34,6 +34,54 @@ const KPI_SELECT = `
   template:kpi_templates (name, category)
 `;
 
+type TeamMemberRow = {
+  employee_id: string;
+};
+
+type EmployeeKpiQueryRow = Omit<EmployeeKpi, "employee" | "template"> & {
+  employee:
+    | { id: string; full_name: string; avatar_url: string | null }
+    | null
+    | { id: string; full_name: string; avatar_url: string | null }[];
+  template:
+    | { name: string; category: string }
+    | null
+    | { name: string; category: string }[];
+};
+
+type KpiTemplateQueryRow = KpiTemplate & {
+  department:
+    | { id: string; name: string; code: string }
+    | null
+    | { id: string; name: string; code: string }[];
+};
+
+type KpiLeaderboardQueryRow = {
+  employee_id: string;
+  current_value: number | string;
+  target_value: number | string;
+  status: string;
+  employee:
+    | { id: string; full_name: string; avatar_url: string | null }
+    | null
+    | { id: string; full_name: string; avatar_url: string | null }[];
+};
+
+type EmployeeDepartmentQueryRow = {
+  profile_id: string;
+  department: { name: string } | null | { name: string }[];
+};
+
+type AssignableEmployeeQueryRow = {
+  profile_id: string;
+  employee_code: string;
+  job_title: string;
+  profile:
+    | { id: string; full_name: string; email: string }
+    | null
+    | { id: string; full_name: string; email: string }[];
+};
+
 async function getTeamMemberIds(managerId: string): Promise<string[]> {
   const supabase = await createClient();
   const { data } = await supabase
@@ -42,7 +90,7 @@ async function getTeamMemberIds(managerId: string): Promise<string[]> {
     .eq("manager_id", managerId)
     .eq("is_active", true);
 
-  return data?.map((row) => row.employee_id) ?? [];
+  return data?.map((row: { employee_id: string }) => row.employee_id) ?? [];
 }
 
 export async function getEmployeeKpis(
@@ -74,11 +122,20 @@ export async function getEmployeeKpis(
   const { data, error } = await query;
   if (error) throw error;
 
-  return (data ?? []).map((row) => ({
+  return (data ?? []).map((row: { employee_id: string }) => ({
     ...row,
     employee: Array.isArray(row.employee) ? row.employee[0] : row.employee,
     template: Array.isArray(row.template) ? row.template[0] : row.template,
   })) as EmployeeKpi[];
+}
+
+export async function getKpiById(
+  role: AppRole,
+  userId: string,
+  kpiId: string,
+): Promise<EmployeeKpi | null> {
+  const kpis = await getEmployeeKpis(role, userId);
+  return kpis.find((kpi) => kpi.id === kpiId) ?? null;
 }
 
 export async function getKpiDashboardStats(
@@ -132,7 +189,7 @@ export async function getKpiTemplates(): Promise<KpiTemplate[]> {
 
   if (error) throw error;
 
-  return (data ?? []).map((row) => ({
+  return (data ?? []).map((row: { employee_id: string }) => ({
     ...row,
     department: Array.isArray(row.department)
       ? row.department[0] ?? null
@@ -318,7 +375,7 @@ export async function getAssignableEmployees(role: AppRole, userId: string) {
   const { data, error } = await query;
   if (error) throw error;
 
-  return (data ?? []).map((row) => ({
+  return (data ?? []).map((row: { employee_id: string }) => ({
     profile_id: row.profile_id,
     employee_code: row.employee_code,
     job_title: row.job_title,

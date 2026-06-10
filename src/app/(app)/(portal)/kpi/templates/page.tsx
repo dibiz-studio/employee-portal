@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ArrowLeft, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { requireRole } from "@/features/dashboard/services/dashboard.service";
 import { getKpiTemplates } from "@/features/kpi/services/kpi.service";
+import { Breadcrumbs } from "@/shared/components/layout/breadcrumbs";
 import { PageHeader } from "@/shared/components/data/page-header";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
@@ -23,21 +24,17 @@ import {
 } from "@/shared/components/ui/table";
 
 export default async function KpiTemplatesPage() {
-  await requireRole(["SUPER_ADMIN", "HR"]);
+  await requireRole(["SUPER_ADMIN", "HR", "MANAGER"]);
   const templates = await getKpiTemplates();
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" size="sm" asChild className="-ml-2 w-fit">
-        <Link href="/kpi">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to KPI
-        </Link>
-      </Button>
-
+      <Breadcrumbs />
       <PageHeader
         title="KPI Templates"
         description="Reusable performance goal templates"
+        backHref="/kpi"
+        backLabel="Back to KPI dashboard"
         actions={
           <Button asChild>
             <Link href="/kpi/templates/new">

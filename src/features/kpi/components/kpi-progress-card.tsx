@@ -1,6 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
+import Link from "next/link";
 
 import { calcProgress } from "@/features/kpi/lib/utils";
 import type { EmployeeKpi } from "@/features/kpi/types";
@@ -14,17 +15,28 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card";
 import { Progress } from "@/shared/components/ui/progress";
+import { cn } from "@/shared/lib/utils";
 
 interface KpiProgressCardProps {
   kpi: EmployeeKpi;
   showEmployee?: boolean;
+  href?: string;
 }
 
-export function KpiProgressCard({ kpi, showEmployee }: KpiProgressCardProps) {
+export function KpiProgressCard({
+  kpi,
+  showEmployee,
+  href,
+}: KpiProgressCardProps) {
   const progress = calcProgress(kpi);
 
-  return (
-    <Card>
+  const card = (
+    <Card
+      className={cn(
+        "h-full transition-all",
+        href && "group hover:border-primary/40 hover:shadow-sm",
+      )}
+    >
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1">
@@ -40,7 +52,9 @@ export function KpiProgressCard({ kpi, showEmployee }: KpiProgressCardProps) {
       </CardHeader>
       <CardContent className="space-y-3">
         {showEmployee && kpi.employee ? (
-          <p className="text-sm text-muted-foreground">{kpi.employee.full_name}</p>
+          <p className="text-sm text-muted-foreground">
+            {kpi.employee.full_name}
+          </p>
         ) : null}
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Progress</span>
@@ -55,11 +69,30 @@ export function KpiProgressCard({ kpi, showEmployee }: KpiProgressCardProps) {
             <Badge variant="outline">{kpi.template.category}</Badge>
           ) : null}
           <span>
-            {format(new Date(kpi.period_start), "MMM d")} –{" "}
+            {format(new Date(kpi.period_start), "MMM d")} -{" "}
             {format(new Date(kpi.period_end), "MMM d, yyyy")}
           </span>
+          {href ? (
+            <span className="text-primary transition-colors group-hover:underline">
+              View details
+            </span>
+          ) : null}
         </div>
       </CardContent>
     </Card>
+  );
+
+  if (!href) {
+    return card;
+  }
+
+  return (
+    <Link
+      href={href}
+      className="block h-full rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+      aria-label={`View KPI details for ${kpi.title}`}
+    >
+      {card}
+    </Link>
   );
 }

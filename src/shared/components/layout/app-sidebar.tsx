@@ -70,7 +70,7 @@ export function AppSidebar({ initialRole }: AppSidebarProps) {
           ) : (
             <Link
               href="/dashboard"
-              className="text-lg font-bold text-primary"
+              className="text-lg font-bold text-orange-400"
               aria-label="Dibiz Studio home"
             >
               D
@@ -102,9 +102,9 @@ export function AppSidebar({ initialRole }: AppSidebarProps) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all hover:bg-orange-500/10 hover:text-orange-300",
                   isActive &&
-                    "bg-sidebar-accent text-sidebar-accent-foreground",
+                    "border border-orange-500/30 bg-orange-500/10 text-orange-300 shadow-[0_0_0_1px_rgba(249,115,22,0.08)]",
                   collapsed && "justify-center px-2",
                 )}
               >
@@ -137,16 +137,16 @@ export function AppSidebar({ initialRole }: AppSidebarProps) {
                 const Icon = item.icon;
 
                 const link = (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                      isActive &&
-                        "bg-sidebar-accent text-sidebar-accent-foreground",
-                      collapsed && "justify-center px-2",
-                    )}
-                  >
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-all hover:bg-orange-500/10 hover:text-orange-300",
+                    isActive &&
+                      "border border-orange-500/30 bg-orange-500/10 text-orange-300",
+                    collapsed && "justify-center px-2",
+                  )}
+                >
                     <Icon className="h-5 w-5 shrink-0" aria-hidden />
                     {!collapsed ? <span>{item.label}</span> : null}
                   </Link>

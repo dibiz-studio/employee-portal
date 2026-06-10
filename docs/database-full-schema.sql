@@ -554,3 +554,44 @@ CREATE POLICY audit_insert ON public.audit_logs FOR INSERT TO authenticated
 -- 8. SEED: Super Admin (run after creating auth.users row)
 -- -----------------------------------------------------------------------------
 -- See docs/seed-admin.sql for creating auth user + profile
+
+-- -----------------------------------------------------------------------------
+-- 9. ONBOARDING EXTENSION
+-- -----------------------------------------------------------------------------
+-- Added via `supabase/migrations/20260610_onboarding_invites_intakes.sql`
+--
+-- New tables:
+--   - public.onboarding_invites
+--   - public.onboarding_intakes
+--
+-- Added columns:
+--   - public.profiles.onboarding_invite_id
+--   - public.profiles.onboarding_started_at
+--   - public.profiles.onboarding_completed_at
+--   - public.employee_profiles.pan_number
+--   - public.employee_profiles.aadhaar_number
+--   - public.employee_profiles.stipend_amount
+--   - public.employee_profiles.onboarding_started_at
+--   - public.employee_profiles.onboarding_completed_at
+--   - public.employee_profiles.joining_letter_document_id
+--   - public.employee_profiles.joining_letter_signed_document_id
+--   - public.employee_profiles.joining_letter_sent_at
+--   - public.employee_profiles.joining_letter_returned_at
+--   - public.documents.document_key
+--   - public.documents.source_url
+--   - public.documents.source_type
+--   - public.documents.review_status
+--   - public.documents.reviewed_by
+--   - public.documents.reviewed_at
+--   - public.documents.review_notes
+--   - public.documents.source_metadata
+--
+-- New enums:
+--   - onboarding_intake_status
+--   - onboarding_document_review_status
+--   - document_source_type
+--
+-- Trigger behavior:
+--   - onboarding intake submission records invite usage
+--   - approved intakes mark profile onboarding as COMPLETED
+--   - completion timestamps are mirrored onto profiles and employee_profiles

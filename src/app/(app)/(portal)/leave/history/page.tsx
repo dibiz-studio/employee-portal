@@ -15,7 +15,7 @@ import {
 import { formatDate } from "@/shared/lib/utils";
 
 const LEAVE_NAV = [
-  { label: "Dashboard", href: "/leave" },
+  { label: "Overview", href: "/leave" },
   { label: "Apply", href: "/leave/apply" },
   { label: "History", href: "/leave/history" },
   { label: "Calendar", href: "/leave/calendar" },

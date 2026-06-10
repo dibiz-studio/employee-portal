@@ -1,8 +1,8 @@
 import Link from "next/link";
 
-import { getServerProfile } from "@/features/auth/services/auth-server.service";
 import { requireRole } from "@/features/dashboard/services/dashboard.service";
 import { getPayrollSummary } from "@/features/payroll/services/payroll.service";
+import { Breadcrumbs } from "@/shared/components/layout/breadcrumbs";
 import { PageHeader } from "@/shared/components/data/page-header";
 import { StatCard } from "@/shared/components/data/stat-card";
 import { StatusBadge } from "@/shared/components/data/status-badge";
@@ -20,17 +20,12 @@ import { hasPermission } from "@/shared/lib/rbac";
 import { formatCurrency, formatMonthYear } from "@/shared/lib/utils";
 
 const PAYROLL_NAV = [
-  { label: "Dashboard", href: "/payroll" },
+  { label: "Overview", href: "/payroll" },
   { label: "Analytics", href: "/payroll/analytics" },
 ];
 
 export default async function PayrollDashboardPage() {
-  const profile = await getServerProfile();
-  if (!profile) return null;
-
-  if (!hasPermission(profile.role, "payroll:read")) {
-    await requireRole(["SUPER_ADMIN", "HR", "MANAGER"]);
-  }
+  const profile = await requireRole(["SUPER_ADMIN", "HR"]);
 
   const summary = await getPayrollSummary(profile.id, profile.role);
   const now = new Date();
@@ -43,6 +38,7 @@ export default async function PayrollDashboardPage() {
 
   return (
     <div className="space-y-6">
+      <Breadcrumbs />
       <PageHeader
         title="Payroll"
         description={`Payroll overview for ${formatMonthYear(now.getMonth() + 1, now.getFullYear())}.`}

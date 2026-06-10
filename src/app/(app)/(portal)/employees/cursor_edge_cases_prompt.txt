@@ -1,0 +1,135 @@
+# Cursor Edge‑Case & UI Polish Prompt (Dibiz Studio HRMS Portal)
+
+**Project root:** `c:\Users\Chirag\Desktop\work dibiz\Employee management portal`
+**Current state:** All previous fixes (sidebar hydration, Google SSO, demo credentials, dark‑mode basics) are already merged. The app runs on `localhost:3000`.
+
+Your mission is to audit the live UI, hunt down confusing navigation elements, fill in missing “Create / Add” actions, and shore up every edge case so the portal is production‑ready for Dibiz Studio.
+
+---
+
+## 1️⃣ QUICK RECAP OF WHAT’S DONE
+
+| Feature | Status |
+|--------|--------|
+| Sidebar hydration bug | Fixed (InitialStateProvider) |
+| Google SSO & avatar sync | Implemented (`/auth/callback`) |
+| Demo credentials (5 roles) | Added |
+| Dark‑mode toggle (basic) | Enabled |
+| Mobile bottom nav (RBAC‑aware) | Working |
+| Waiting‑onboarding flow | Implemented |
+| Lint warnings cleaned | Done |
+
+> Do **not** revert any of those changes. The prompt below starts after that point.
+
+---
+
+## 2️⃣ UI / UX EDGE‑CASE AUDIT
+
+### 2.1. Back‑Button Confusion
+- **Problem:** The sidebar contains a “Back” link that calls `router.back()`. Users may think it navigates to a parent page (e.g., department list) but it actually goes back in browser history, sometimes exiting the app.
+- **Fixes:**
+  1. **Rename** the link to something explicit like `← Employees` or `← Departments` depending on context.
+  2. **Replace** `router.back()` with a deterministic `router.push('<parent‑route>')` for each page that currently uses a generic back button.
+  3. **Add** a small left‑arrow icon (from `lucide-react`) to differentiate it from a generic “Back”.
+- **Files to update** (search for `router.back()`):
+  - `src/features/employees/components/create-employee-form.tsx` (≈ line 226)
+  - `src/features/kpi/components/create-template-form.tsx` (≈ line 180)
+  - `src/features/kpi/components/assign-kpi-form.tsx` (≈ line 254)
+  - Any other component using `router.back()`.
+
+### 2.2. Missing “Create / Add” Buttons
+- **Departments page** (`src/app/(app)/(portal)/employees/departments/page.tsx`) shows a list but no “Add Department” action.
+- **Add Department button** – place a primary `<Button>` labelled **“Add Department”** at the top‑right of the page.
+- **Modal dialog** – use the existing `Dialog` component (`src/shared/components/ui/dialog.tsx`). Inside, render a `CreateDepartmentForm` (you can base it on the employee‑creation form but keep only relevant fields: *Name*, *Head*, *Description*).
+- **Validation:** require a non‑empty name; show an inline error if the name already exists (query Supabase `departments` table).
+- **Mutation:**
+  ```ts
+  await supabase.from('departments').insert({ name, head_id, description })
+  ```
+  - On success: close dialog, optimistically add the new department to the UI list (use SWR/React‑Query to re‑validate).
+  - On error: surface the error via `showErrorToast`.
+- **Repeat** similar “Add Team” and “Add Location” buttons on the respective pages (`teams/page.tsx`, `locations/page.tsx`).
+
+### 2.3. Navigation Consistency
+| Issue | Fix |
+|-------|-----|
+| Sidebar links flash empty on first load (still solved by `InitialStateProvider`). Ensure fallback UI shows a skeleton loader instead of a blank space. Update `AppSidebarSkeleton` component if it exists. | Add a skeleton loader component.
+| Mobile drawer “Close” icon not intuitive – replace generic `×` with a proper `ChevronLeft` icon and add tooltip “Close navigation”. | Update `MobileNavDrawer` component.
+| Header logo click currently routes to `/`. Change it to route to the Dashboard (`/dashboard`). | Modify `AppHeader` logo link.
+| Breadcrumbs missing on deeper pages (e.g., Department → Edit). Add a small breadcrumb component (`Breadcrumbs.tsx`) that reads the current route from `usePathname()` and displays a trail: `Dashboard / Employees / Departments / {deptName}`. | Create component and embed where needed.
+| Search bar in the header should debounce input (300 ms) and show a loading spinner while results are fetched. Update `SearchInput` component accordingly. | Implement debounce with `useDebounce`.
+
+### 2.4. Edge‑Case Handling
+- **Empty State** – When a list (employees, departments, KPIs) is empty, display a friendly empty‑state component with a call‑to‑action button (e.g., “Add first employee”).
+- **Network Errors** – Wrap all Supabase calls in `try/catch` and funnel errors to `showErrorToast`. For 401/403 responses, redirect to `/login?error=unauthorized`.
+- **Session Expiration** – Detect `supabase.auth.onAuthStateChange` events. If the session expires, automatically redirect to the login page with a toast “Session expired, please sign in again”.
+- **Role‑Based UI Guard** – The `RoleGuard` component already exists. Ensure every page that requires a role wraps its content with `<RoleGuard allowed={['HR','MANAGER']}>`. Add missing guards on:
+  - `settings/company/page.tsx` (SUPER_ADMIN only)
+  - `kpi/templates/page.tsx` (MANAGER, HR)
+  - `payroll/*` (HR, SUPER_ADMIN)
+- **Form Submission Double‑Click** – Disable the submit button while the request is in flight (`isSubmitting` state). Show a spinner inside the button.
+- **File Upload Limits** – If any component allows avatar upload, enforce a max size of **2 MB** and accept only `image/jpeg`, `image/png`. Show a clear error message otherwise.
+- **Responsive Breakpoints** – Verify that all modal dialogs, tables, and cards collapse gracefully at `sm` (640 px). Use Tailwind’s `overflow-x-auto` on tables, and stack cards vertically on mobile.
+- **Dark‑Mode Contrast** – Run Lighthouse accessibility audit in dark mode. Adjust any low‑contrast text (e.g., `text-muted-foreground` on dark background) to meet AA contrast (≥ 4.5:1).
+- **Back‑Navigation Guard** – When a user is on the **Onboarding waiting page**, prevent them from navigating back to the login screen via the browser back button (use `router.replace` after login). Show a toast “Your account is pending approval”.
+- **Supabase RLS** – Verify Row‑Level Security policies for `profiles`, `departments`, `kpis`:
+  - **Profiles**: users can read/write only their own row.
+  - **Departments**: HR/ADMIN can read all; only ADMIN can delete.
+  - **KPI Templates**: only MANAGER/HR can create; only the creator can edit.
+  - Add a short note in `supabase/migrations/` if policies need updating.
+
+### 2.5. Testing Checklist (Manual + Automated)
+| Test | Steps | Expected |
+|------|-------|----------|
+| Google SSO | Click “Continue with Google”, sign in, verify avatar appears in header | Avatar URL saved in `profiles.avatar_url` |
+| Sidebar hydration | Refresh page, ensure links stay populated instantly | No flash of empty list |
+| Back button rename | Click `← Employees` on a department page, ensure it always returns to `/employees` | Deterministic navigation |
+| Add Department | Use the new “Add Department” button, fill form, submit | New row appears, list updates |
+| Role guard | Log in as `employee1@company.dev`, attempt to hit `/settings/company` | Redirected to `/login?error=unauthorized` |
+| Onboarding waiting page | New user signs up via Google, see “Pending approval” page, try to navigate away | Cannot leave page until HR assigns a role |
+| Dark‑mode contrast | Enable dark mode, run Lighthouse, score ≥ 90 for contrast | No WCAG failures |
+| Responsive tables | Resize to mobile width, verify tables scroll horizontally, cards stack | UI remains usable |
+| Form double‑click | Click submit rapidly, ensure only one request sent | Button disabled after first click |
+| File upload size | Try uploading a 3 MB image as avatar | Error “File exceeds 2 MB limit” |
+| Logout flow | Click logout, ensure session cleared and redirected to `/login` | No protected routes accessible |
+| **Automated tests** | Add Jest + React Testing Library tests for each guard/component. Add Cypress e2e tests for the full login + onboarding flow. | Test suite passes |
+
+---
+
+## 3️⃣ Implementation Steps for Cursor
+1. Search & replace all `router.back()` usages (list above). Replace with explicit `router.push('<parent route>')`.
+2. Add **Add Department** button & modal in `departments/page.tsx`. Reuse `Dialog` + a new `CreateDepartmentForm`.
+3. Add analogous **Add** actions for Teams and Locations.
+4. Rename sidebar back link to a clear label with an icon.
+5. Add **Breadcrumbs** component and embed it on deep pages.
+6. Update Header logo navigation to `/dashboard`.
+7. Add **empty‑state** components where lists may be empty.
+8. Wrap all protected pages with `RoleGuard` (list provided).
+9. Implement network‑error handling with `showErrorToast` and redirect logic.
+10. Add debounce & spinner to `SearchInput`.
+11. Add dark‑mode contrast fixes (adjust Tailwind classes where needed).
+12. Add file‑size validation in any avatar upload component.
+13. Add session‑expiry listener (`supabase.auth.onAuthStateChange`) that redirects to login with a toast.
+14. Add testing files (`__tests__/role-guard.test.tsx`, `cypress/integration/onboarding_spec.js`, etc.).
+15. Document RLS policies in a new markdown file `SUPABASE_RLS.md` under the repo root.
+
+---
+
+## 4️⃣ Deliverables for Cursor
+- **Modified source files** (list above) with clear commit messages (e.g., `feat: replace generic back navigation with deterministic parent routes`).
+- **New UI components:** `AddDepartmentDialog`, `Breadcrumbs`, `EmptyState`, `SearchInput` (debounced).
+- **Updated `RoleGuard` usage** across the app.
+- **Supabase RLS markdown** documenting required policies.
+- **Test suite** (unit + e2e) covering every new/changed behaviour.
+- **README** section “Local Development” updated to note the new `npm run test` command.
+
+---
+
+## 5️⃣ Final Note to Cursor
+You have full access to the current repository. Use the above checklist as your single source of truth. Implement each item, run the test suite, and once all tests pass and the local dev server (`npm run dev`) shows no console errors and the UI behaves as described, **declare the task complete**.
+
+If you encounter any ambiguous UI wording or need clarification on a specific route name, **ask the user** before proceeding.
+
+---
+
+*End of prompt.*

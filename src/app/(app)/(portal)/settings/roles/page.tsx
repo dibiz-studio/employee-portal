@@ -3,12 +3,23 @@ import { RolesTable } from "@/features/settings/components/roles-table";
 import { getProfilesForRoleManagement } from "@/features/settings/services/settings.service";
 import { PageHeader } from "@/shared/components/data/page-header";
 
+// Shape of user profile returned by getProfilesForRoleManagement
+type UserProfile = {
+  id: string;
+  email: string;
+  full_name: string;
+  role: string;
+  is_active: boolean;
+  onboarding_status: string;
+  created_at: string;
+};
+
 export default async function RolesSettingsPage() {
   await requireRole(["SUPER_ADMIN", "HR"]);
   const users = await getProfilesForRoleManagement();
 
   const pendingCount = users.filter(
-    (u) => u.onboarding_status === "PENDING",
+    (u: UserProfile) => u.onboarding_status === "PENDING",
   ).length;
 
   return (

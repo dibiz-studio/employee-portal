@@ -6,16 +6,18 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatDate(value: string | Date) {
-  return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(
-    new Date(value),
-  );
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Invalid date";
+  return new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" }).format(date);
 }
 
 export function formatDateTime(value: string | Date) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Invalid date";
   return new Intl.DateTimeFormat("en-IN", {
     dateStyle: "medium",
     timeStyle: "short",
-  }).format(new Date(value));
+  }).format(date);
 }
 
 export function formatCurrency(amount: number) {
@@ -32,6 +34,7 @@ export function asSingleRelation<T>(value: T | T[] | null | undefined): T | null
 }
 
 export function formatMonthYear(month: number, year: number) {
+  if (!Number.isFinite(month) || !Number.isFinite(year)) return "Invalid date";
   return new Intl.DateTimeFormat("en-IN", {
     month: "long",
     year: "numeric",

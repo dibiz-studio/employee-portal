@@ -1,4 +1,4 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 import {
   AlertTriangle,
   BarChart3,
@@ -19,6 +19,7 @@ import {
   getKpiTrendData,
 } from "@/features/kpi/services/kpi.service";
 import { PageHeader } from "@/shared/components/data/page-header";
+import { EmptyState } from "@/shared/components/data/empty-state";
 import { StatCard } from "@/shared/components/data/stat-card";
 import { Button } from "@/shared/components/ui/button";
 import {
@@ -121,18 +122,22 @@ export default async function KpiDashboardPage() {
           <CardDescription>
             {kpis.length === 0
               ? "No KPIs assigned yet"
-              : `Showing ${Math.min(kpis.length, 6)} of ${kpis.length}`}
+              : `Showing ${kpis.length} KPI${kpis.length === 1 ? "" : "s"}`}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {kpis.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              Assign KPIs to start tracking performance.
-            </p>
+            <EmptyState
+              icon={Target}
+              title="No KPIs assigned"
+              description="Assign KPIs to start tracking performance goals."
+              actionLabel={canAssign ? "Assign KPI" : undefined}
+              actionHref={canAssign ? "/kpi/assign" : undefined}
+            />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {kpis.slice(0, 6).map((kpi) => (
-                <KpiProgressCard key={kpi.id} kpi={kpi} showEmployee />
+              {kpis.map((kpi) => (
+                <KpiProgressCard key={kpi.id} kpi={kpi} showEmployee href={`/kpi/${kpi.id}`} />
               ))}
             </div>
           )}
@@ -141,3 +146,4 @@ export default async function KpiDashboardPage() {
     </div>
   );
 }
+

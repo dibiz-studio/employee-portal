@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -43,7 +43,9 @@ type SignupFormValues = z.infer<typeof signupSchema>;
 
 export function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const inviteToken = searchParams.get("invite");
 
   const {
     register,
@@ -76,7 +78,11 @@ export function SignupForm() {
       }
 
       toast.success("Account created. Please sign in.");
-      router.push("/login");
+      router.push(
+        inviteToken
+          ? `/onboarding?invite=${encodeURIComponent(inviteToken)}`
+          : "/login",
+      );
     } catch (error) {
       showErrorToast(error, "Unable to create account");
     } finally {

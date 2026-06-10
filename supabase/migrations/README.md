@@ -14,6 +14,13 @@ Migrations were applied directly to the linked Supabase project via MCP.
 | `rls_policies` | Row Level Security on all tables |
 | `seed_departments_and_policies` | Departments, leave policies, KPI templates |
 
+## Pending Local Migration
+
+| Name | Description |
+|------|-------------|
+| `20260610_onboarding_invites_intakes` | Secure invite tokens, onboarding intake staging, onboarding completion fields |
+| `20260610_onboarding_intakes_nullable` | Allow draft onboarding saves before final submission |
+
 ## Seed Data
 
 - 25 auth users (see README for credentials)

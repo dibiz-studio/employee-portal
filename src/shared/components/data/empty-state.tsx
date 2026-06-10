@@ -1,48 +1,55 @@
 import type { LucideIcon } from "lucide-react";
-import { Inbox } from "lucide-react";
 
 import { Button } from "@/shared/components/ui/button";
+import {
+  Card,
+  CardContent,
+} from "@/shared/components/ui/card";
 import { cn } from "@/shared/lib/utils";
 
 interface EmptyStateProps {
   icon?: LucideIcon;
   title: string;
-  description?: string;
-  action?: {
-    label: string;
-    onClick: () => void;
-  };
+  description: string;
+  actionLabel?: string;
+  actionHref?: string;
+  onAction?: () => void;
   className?: string;
 }
 
 export function EmptyState({
-  icon: Icon = Inbox,
+  icon: Icon,
   title,
   description,
-  action,
+  actionLabel,
+  actionHref,
+  onAction,
   className,
 }: EmptyStateProps) {
   return (
-    <div
-      className={cn(
-        "flex flex-col items-center justify-center rounded-lg border border-dashed border-border px-6 py-16 text-center",
-        className,
-      )}
-    >
-      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
-        <Icon className="h-6 w-6 text-muted-foreground" aria-hidden />
-      </div>
-      <h3 className="text-lg font-semibold">{title}</h3>
-      {description ? (
-        <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+    <Card className={cn("border-dashed", className)}>
+      <CardContent className="flex flex-col items-center py-12 text-center">
+        {Icon ? (
+          <div className="mb-4 rounded-full bg-muted p-3">
+            <Icon className="h-8 w-8 text-muted-foreground" />
+          </div>
+        ) : null}
+        <p className="text-lg font-medium">{title}</p>
+        <p className="mt-1 max-w-sm text-sm text-muted-foreground">
           {description}
         </p>
-      ) : null}
-      {action ? (
-        <Button className="mt-6" onClick={action.onClick}>
-          {action.label}
-        </Button>
-      ) : null}
-    </div>
+        {actionLabel ? (
+          actionHref ? (
+            <Button className="mt-6" asChild>
+              <a href={actionHref}>{actionLabel}</a>
+            </Button>
+          ) : onAction ? (
+            <Button className="mt-6" onClick={onAction}>
+              {actionLabel}
+            </Button>
+          ) : null
+        ) : null}
+      </CardContent>
+    </Card>
   );
 }

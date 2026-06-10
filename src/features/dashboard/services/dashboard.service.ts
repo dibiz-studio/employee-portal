@@ -22,7 +22,8 @@ async function getTeamMemberIds(managerId: string): Promise<string[]> {
     .eq("manager_id", managerId)
     .eq("is_active", true);
 
-  return data?.map((row) => row.employee_id) ?? [];
+  type ManagerAssignmentRow = { employee_id: string };
+  return data?.map((row: ManagerAssignmentRow) => row.employee_id) ?? [];
 }
 
 export async function getDashboardStats(

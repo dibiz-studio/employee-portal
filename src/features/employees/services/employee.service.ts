@@ -39,6 +39,33 @@ const EMPLOYEE_SELECT = `
   )
 `;
 
+type TeamMemberRow = {
+  employee_id: string;
+};
+
+type DepartmentQueryRow = {
+  id: string;
+  name: string;
+  code: string;
+  description: string | null;
+  is_active: boolean;
+  head: { id: string; full_name: string; avatar_url: string | null } | null | {
+    id: string;
+    full_name: string;
+    avatar_url: string | null;
+  }[];
+};
+
+type LeaveRequestQueryRow = {
+  id: string;
+  start_date: string;
+  end_date: string;
+  days_requested: number;
+  reason: string;
+  status: string;
+  policy: { name: string; code: string } | null | { name: string; code: string }[];
+};
+
 async function getTeamMemberIds(managerId: string): Promise<string[]> {
   const supabase = await createClient();
   const { data } = await supabase
@@ -47,7 +74,7 @@ async function getTeamMemberIds(managerId: string): Promise<string[]> {
     .eq("manager_id", managerId)
     .eq("is_active", true);
 
-  return data?.map((row) => row.employee_id) ?? [];
+  return data?.map((row: TeamMemberRow) => row.employee_id) ?? [];
 }
 
 export async function canAccessEmployee(
@@ -124,7 +151,7 @@ export async function getEmployeeStats(role: AppRole, userId: string) {
     (e) => e.employment_status === "ON_LEAVE",
   ).length;
   const departments = new Set(
-    employees.map((e) => e.department?.id).filter(Boolean),
+    employees.map((e: EmployeeProfile) => e.department?.id).filter(Boolean),
   ).size;
 
   return {
@@ -175,7 +202,7 @@ export async function getDepartmentsWithStats(): Promise<DepartmentWithStats[]> 
     }
   }
 
-  return (departments ?? []).map((dept) => ({
+  return (departments ?? []).map((dept: DepartmentQueryRow) => ({
     id: dept.id,
     name: dept.name,
     code: dept.code,
@@ -209,7 +236,7 @@ export async function getEmployeeLeaveRequests(
 
   if (error) throw error;
 
-  return (data ?? []).map((row) => ({
+  return (data ?? []).map((row: LeaveRequestQueryRow) => ({
     ...row,
     policy: Array.isArray(row.policy) ? row.policy[0] ?? null : row.policy,
   })) as LeaveRequestSummary[];

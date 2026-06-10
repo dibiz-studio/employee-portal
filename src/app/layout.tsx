@@ -16,7 +16,7 @@ export const metadata = {
   title: "Dibiz Studio – Employee Management Portal",
   description: "Employee management for Dibiz Studio.",
   icons: {
-    icon: "/icon.svg",
+    icon: "/dibiz-logo.png",
   },
 };
 
