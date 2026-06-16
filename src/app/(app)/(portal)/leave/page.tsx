@@ -6,6 +6,7 @@ import {
   getLeaveBalances,
   getLeaveRequests,
 } from "@/features/leave/services/leave.service";
+import { getLeaveNavItems } from "@/features/leave/lib/leave-nav";
 import { EmptyState } from "@/shared/components/data/empty-state";
 import { PageHeader } from "@/shared/components/data/page-header";
 import { StatCard } from "@/shared/components/data/stat-card";
@@ -30,14 +31,6 @@ import {
 import { hasPermission } from "@/shared/lib/rbac";
 import { formatDate } from "@/shared/lib/utils";
 
-const LEAVE_NAV = [
-  { label: "Overview", href: "/leave" },
-  { label: "Apply", href: "/leave/apply" },
-  { label: "History", href: "/leave/history" },
-  { label: "Calendar", href: "/leave/calendar" },
-  { label: "Analytics", href: "/leave/analytics" },
-];
-
 export default async function LeaveDashboardPage() {
   const profile = await getServerProfile();
   if (!profile) return null;
@@ -51,14 +44,13 @@ export default async function LeaveDashboardPage() {
   const pendingCount = recentRequests.filter((r) => r.status === "PENDING").length;
   const canApprove = hasPermission(profile.role, "leave:approve");
   const canManagePolicies = hasPermission(profile.role, "leave:policies:manage");
-
-  const nav = [
-    ...LEAVE_NAV,
-    ...(canApprove ? [{ label: "Approvals", href: "/leave/approvals" }] : []),
-    ...(canManagePolicies
-      ? [{ label: "Policies", href: "/leave/policies" }]
-      : []),
-  ];
+  const nav = getLeaveNavItems(profile.role).filter((item) =>
+    item.href === "/leave/approvals"
+      ? canApprove
+      : item.href === "/leave/policies"
+        ? canManagePolicies
+        : true,
+  );
 
   return (
     <div className="space-y-6">

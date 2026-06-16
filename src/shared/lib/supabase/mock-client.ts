@@ -192,19 +192,40 @@ export interface MockNotification {
   title: string;
   message: string;
   type: string;
-  read: boolean;
+  is_read: boolean;
+  read_at: string | null;
   created_at: string;
 }
 
 export interface MockDailyUpdate {
   id: string;
   employee_id: string;
+  brand_id: string | null;
+  report_date: string;
   date: string;
-  tasks_completed: string;
+  tasks_completed: string[];
+  hours_worked: number;
   tasks_in_progress: string;
   blockers: string;
   created_at: string;
   profiles?: { full_name: string };
+  brand?: MockBrand | null;
+  brands?: MockBrand | null;
+}
+
+export interface MockBrand {
+  id: string;
+  name: string;
+  slug: string;
+  industry: string | null;
+  website_url: string | null;
+  description: string | null;
+  status: string;
+  created_by: string | null;
+  assigned_manager_id: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface MockAuditLog {
@@ -224,6 +245,7 @@ export interface MockDb {
   profiles: MockProfile[];
   onboarding_invites: MockOnboardingInvite[];
   onboarding_intakes: MockOnboardingIntake[];
+  brands: MockBrand[];
   departments: MockDepartment[];
   employee_profiles: MockEmployeeProfile[];
   leave_policies: MockLeavePolicy[];
@@ -258,6 +280,30 @@ const defaultProfiles: MockProfile[] = [
     avatar_url: null,
     role: "HR",
     phone: "0987654321",
+    is_active: true,
+    onboarding_status: "COMPLETED",
+    created_at: "2026-05-01T00:00:00.000Z",
+    updated_at: "2026-05-01T00:00:00.000Z"
+  },
+  {
+    id: "manager-id-789",
+    email: "manager@dibizstudio.com",
+    full_name: "Dibiz Growth Manager",
+    avatar_url: null,
+    role: "MANAGER",
+    phone: "1112223333",
+    is_active: true,
+    onboarding_status: "COMPLETED",
+    created_at: "2026-05-01T00:00:00.000Z",
+    updated_at: "2026-05-01T00:00:00.000Z"
+  },
+  {
+    id: "intern-id-789",
+    email: "intern@dibizstudio.com",
+    full_name: "Dibiz Growth Intern",
+    avatar_url: null,
+    role: "INTERN",
+    phone: "4445556666",
     is_active: true,
     onboarding_status: "COMPLETED",
     created_at: "2026-05-01T00:00:00.000Z",
@@ -300,6 +346,37 @@ const defaultDepartments: MockDepartment[] = [
   { id: "dept-3", name: "Marketing", code: "MKT", description: "Social Media and Design", is_active: true, profiles: { full_name: "Dibiz Backup Admin" } }
 ];
 
+const defaultBrands: MockBrand[] = [
+  {
+    id: "brand-1",
+    name: "Acme Studio",
+    slug: "acme-studio",
+    industry: "Beauty",
+    website_url: "https://acme.example",
+    description: "Primary retainer brand for social and performance work.",
+    status: "ACTIVE",
+    created_by: "admin-id-456",
+    assigned_manager_id: "admin-id-123",
+    notes: "Priority growth account",
+    created_at: "2026-06-01T00:00:00.000Z",
+    updated_at: "2026-06-01T00:00:00.000Z"
+  },
+  {
+    id: "brand-2",
+    name: "Northline Foods",
+    slug: "northline-foods",
+    industry: "FMCG",
+    website_url: "https://northline.example",
+    description: "Content and campaign account for growth marketing.",
+    status: "ACTIVE",
+    created_by: "admin-id-456",
+    assigned_manager_id: "admin-id-123",
+    notes: "Focus on conversions and creator campaigns",
+    created_at: "2026-06-01T00:00:00.000Z",
+    updated_at: "2026-06-01T00:00:00.000Z"
+  }
+];
+
 const defaultEmployeeProfiles: MockEmployeeProfile[] = [
   {
     id: "emp-profile-123",
@@ -336,6 +413,42 @@ const defaultEmployeeProfiles: MockEmployeeProfile[] = [
     profiles: defaultProfiles[1],
     department: defaultDepartments[1],
     departments: defaultDepartments[1]
+  },
+  {
+    id: "emp-profile-789",
+    profile_id: "manager-id-789",
+    employee_code: "EMP-003",
+    department_id: "dept-3",
+    job_title: "Growth Manager",
+    employment_status: "FULL_TIME",
+    hire_date: "2024-03-01",
+    termination_date: null,
+    date_of_birth: "1992-07-20",
+    work_location: "Hybrid",
+    created_at: "2026-05-01T00:00:00.000Z",
+    updated_at: "2026-05-01T00:00:00.000Z",
+    profile: defaultProfiles[2],
+    profiles: defaultProfiles[2],
+    department: defaultDepartments[2],
+    departments: defaultDepartments[2]
+  },
+  {
+    id: "emp-profile-890",
+    profile_id: "intern-id-789",
+    employee_code: "INT-001",
+    department_id: "dept-3",
+    job_title: "Growth Intern",
+    employment_status: "PROBATION",
+    hire_date: "2026-06-01",
+    termination_date: null,
+    date_of_birth: "2002-11-11",
+    work_location: "Remote",
+    created_at: "2026-05-01T00:00:00.000Z",
+    updated_at: "2026-05-01T00:00:00.000Z",
+    profile: defaultProfiles[3],
+    profiles: defaultProfiles[3],
+    department: defaultDepartments[2],
+    departments: defaultDepartments[2]
   }
 ];
 
@@ -480,7 +593,8 @@ const defaultNotifications: MockNotification[] = [
     title: "Welcome to Dibiz Studio Portal",
     message: "Your HRMS dashboard is set up and ready.",
     type: "SYSTEM",
-    read: false,
+    is_read: false,
+    read_at: null,
     created_at: new Date().toISOString()
   }
 ];
@@ -489,12 +603,38 @@ const defaultDailyUpdates: MockDailyUpdate[] = [
   {
     id: "update-1",
     employee_id: "admin-id-123",
+    brand_id: "brand-1",
+    report_date: "2026-06-09",
     date: "2026-06-09",
-    tasks_completed: "- Replaced supabase clients with mock\n- Added local cookie state management",
+    tasks_completed: [
+      "Replaced supabase clients with mock",
+      "Added local cookie state management",
+    ],
+    hours_worked: 6.5,
     tasks_in_progress: "- Running build tests",
     blockers: "None",
     created_at: "2026-06-09T18:00:00.000Z",
-    profiles: { full_name: "Dibiz Tech Admin" }
+    profiles: { full_name: "Dibiz Tech Admin" },
+    brand: defaultBrands[0],
+    brands: defaultBrands[0]
+  },
+  {
+    id: "update-2",
+    employee_id: "intern-id-789",
+    brand_id: "brand-2",
+    report_date: "2026-06-10",
+    date: "2026-06-10",
+    tasks_completed: [
+      "Shadowed client campaign review",
+      "Prepared social content notes",
+    ],
+    hours_worked: 7,
+    tasks_in_progress: "- Drafting next day content plan",
+    blockers: "Waiting on asset approval",
+    created_at: "2026-06-10T18:00:00.000Z",
+    profiles: { full_name: "Dibiz Growth Intern" },
+    brand: defaultBrands[1],
+    brands: defaultBrands[1]
   }
 ];
 
@@ -515,6 +655,7 @@ const defaultAuditLogs: MockAuditLog[] = [
 
 const defaultManagerAssignments = [
   { employee_id: "admin-id-123", manager_id: "admin-id-456", is_active: true }
+  ,{ employee_id: "intern-id-789", manager_id: "manager-id-789", is_active: true }
 ];
 
 const globalWithDb = globalThis as unknown as { mockDb?: MockDb };
@@ -525,6 +666,7 @@ export function getMockDb(): MockDb {
       profiles: [...defaultProfiles],
       onboarding_invites: [...defaultOnboardingInvites],
       onboarding_intakes: [...defaultOnboardingIntakes],
+      brands: [...defaultBrands],
       departments: [...defaultDepartments],
       employee_profiles: [...defaultEmployeeProfiles],
       leave_policies: [...defaultLeavePolicies],
@@ -539,7 +681,11 @@ export function getMockDb(): MockDb {
       manager_assignments: [...defaultManagerAssignments]
     };
   }
-  return globalWithDb.mockDb;
+  const db = globalWithDb.mockDb;
+  db.daily_updates = db.daily_updates.map(
+    (row) => normalizeMockDailyUpdate(row, db),
+  );
+  return db;
 }
 
 function syncMockOnboardingState(row: MockOnboardingIntake) {
@@ -568,6 +714,33 @@ function syncMockOnboardingState(row: MockOnboardingIntake) {
     profile.onboarding_completed_at = profile.onboarding_completed_at ?? new Date().toISOString();
     profile.updated_at = new Date().toISOString();
   }
+}
+
+function attachMockBrandRelation(db: MockDb, row: MockDailyUpdate) {
+  const brand = row.brand_id
+    ? db.brands.find((item) => item.id === row.brand_id) ?? null
+    : null;
+  row.brand = brand;
+  row.brands = brand;
+}
+
+function normalizeMockDailyUpdate(
+  row: MockDailyUpdate | Record<string, any>,
+  db: MockDb,
+): MockDailyUpdate {
+  if (typeof row.tasks_completed === "string") {
+    row.tasks_completed = row.tasks_completed
+      .split(/\r?\n+/)
+      .map((task: string) => task.replace(/^-+\s*/, "").trim())
+      .filter(Boolean);
+  }
+
+  if (!Array.isArray(row.tasks_completed)) {
+    row.tasks_completed = [];
+  }
+
+  attachMockBrandRelation(db, row as MockDailyUpdate);
+  return row as MockDailyUpdate;
 }
 
 class MockQueryBuilder {
@@ -750,8 +923,11 @@ class MockQueryBuilder {
         }
 
         if (this.tableName === "daily_updates") {
+          newRow.report_date = newRow.report_date ?? newRow.date ?? newRow.created_at.split("T")[0];
+          newRow.hours_worked = Number(newRow.hours_worked ?? 0);
           const profile = db.profiles.find((p) => p.id === newRow.employee_id);
           newRow.profiles = { full_name: profile?.full_name || "Unknown" };
+          normalizeMockDailyUpdate(newRow as MockDailyUpdate, db);
         }
 
         if (this.tableName === "payroll_records") {
@@ -797,6 +973,11 @@ class MockQueryBuilder {
           if (this.tableName === "onboarding_intakes") {
             syncMockOnboardingState(updated as MockOnboardingIntake);
           }
+          if (this.tableName === "daily_updates") {
+            updated.report_date = updated.report_date ?? updated.date ?? updated.created_at.split("T")[0];
+            updated.hours_worked = Number(updated.hours_worked ?? 0);
+            normalizeMockDailyUpdate(updated as MockDailyUpdate, db);
+          }
           affectedCount++;
         }
       });
@@ -817,6 +998,9 @@ class MockQueryBuilder {
           if (this.tableName === "onboarding_intakes") {
             syncMockOnboardingState(updated as MockOnboardingIntake);
           }
+          if (this.tableName === "daily_updates") {
+            normalizeMockDailyUpdate(updated as MockDailyUpdate, db);
+          }
           return updated;
         } else {
           const newRow = {
@@ -828,6 +1012,11 @@ class MockQueryBuilder {
           dataList.push(newRow);
           if (this.tableName === "onboarding_intakes") {
             syncMockOnboardingState(newRow as MockOnboardingIntake);
+          }
+          if (this.tableName === "daily_updates") {
+            newRow.report_date = newRow.report_date ?? newRow.date ?? newRow.created_at.split("T")[0];
+            newRow.hours_worked = Number(newRow.hours_worked ?? 0);
+            normalizeMockDailyUpdate(newRow as MockDailyUpdate, db);
           }
           return newRow;
         }
@@ -929,18 +1118,114 @@ export class MockSupabaseClient {
     },
 
     signInWithOAuth: async (options: { provider: string; options?: { redirectTo?: string } }) => {
-      const redirectUrl = options.options?.redirectTo || "/dashboard";
-      this.cookieManager.set("mock-session-user-id", "admin-id-123", { path: "/" });
-      if (typeof window !== "undefined") {
-        window.location.href = redirectUrl;
+      const redirectUrl = options.options?.redirectTo || '/dashboard';
+      const db = getMockDb();
+
+      // Show a Google-style account picker dialog (mock environment)
+      const selectedUserId = await new Promise<string | null>((resolve) => {
+        if (typeof document === 'undefined') { resolve('admin-id-123'); return; }
+
+        const overlay = document.createElement('div');
+        overlay.id = 'mock-google-picker';
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;';
+
+        const card = document.createElement('div');
+        card.style.cssText = 'background:#fff;border-radius:12px;width:360px;max-width:90vw;box-shadow:0 8px 40px rgba(0,0,0,0.28);overflow:hidden;';
+
+        const header = document.createElement('div');
+        header.style.cssText = 'padding:24px 24px 16px;text-align:center;border-bottom:1px solid #e8eaed;';
+        header.innerHTML = '<div style="font-size:18px;font-weight:600;color:#202124;margin-bottom:4px;">Sign in with Google</div><div style="font-size:13px;color:#5f6368;">Choose an account to continue to<br><strong>Dibiz Studio HRMS</strong></div>';
+
+        const list = document.createElement('div');
+        const accounts = db.profiles.filter((p: any) => p.is_active);
+        const palette = ['#4285F4','#34A853','#EA4335','#FBBC05','#9C27B0'];
+
+        accounts.forEach((acc: any, idx: number) => {
+          const row = document.createElement('button');
+          row.type = 'button';
+          row.style.cssText = 'width:100%;display:flex;align-items:center;gap:12px;padding:12px 20px;border:none;background:transparent;cursor:pointer;text-align:left;border-bottom:1px solid #f1f3f4;';
+          row.onmouseenter = () => { row.style.background = '#f8f9fa'; };
+          row.onmouseleave = () => { row.style.background = 'transparent'; };
+          const initials = acc.full_name.split(' ').map((w: string) => w[0] || '').join('').slice(0, 2).toUpperCase();
+          const color = palette[idx % palette.length];
+          row.innerHTML = '<div style=width:40px;height:40px;border-radius:50%;background:' + color + ';display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:15px;flex-shrink:0;>' + initials + '</div><div style=flex:1;min-width:0;><div style=font-size:14px;font-weight:500;color:#202124;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;>' + acc.full_name + '</div><div style=font-size:12px;color:#5f6368;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;>' + acc.email + '</div></div><div style=font-size:11px;color:#80868b;background:#f1f3f4;padding:2px 8px;border-radius:99px;white-space:nowrap;>' + acc.role.replace(/_/g,' ') + '</div>';
+          row.addEventListener('click', () => { document.body.removeChild(overlay); resolve(acc.id); });
+          list.appendChild(row);
+        });
+
+        const footer = document.createElement('div');
+        footer.style.cssText = 'padding:12px 20px;display:flex;justify-content:flex-end;';
+        const cancelBtn = document.createElement('button');
+        cancelBtn.type = 'button';
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.style.cssText = 'padding:8px 16px;border:none;border-radius:6px;cursor:pointer;background:transparent;color:#5f6368;font-size:14px;font-weight:500;';
+        cancelBtn.onmouseenter = () => { cancelBtn.style.background = '#f8f9fa'; };
+        cancelBtn.onmouseleave = () => { cancelBtn.style.background = 'transparent'; };
+        cancelBtn.addEventListener('click', () => { document.body.removeChild(overlay); resolve(null); });
+        footer.appendChild(cancelBtn);
+
+        card.appendChild(header);
+        card.appendChild(list);
+        card.appendChild(footer);
+        overlay.appendChild(card);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) { document.body.removeChild(overlay); resolve(null); } });
+        document.body.appendChild(overlay);
+      });
+
+      if (!selectedUserId) {
+        return { data: { provider: options.provider, url: null }, error: { message: 'Sign-in cancelled' } };
       }
-      return {
-        data: {
-          provider: options.provider,
-          url: redirectUrl
-        },
-        error: null
-      };
+
+      let userId = selectedUserId;
+
+      if (redirectUrl.includes('invite=')) {
+        try {
+          const urlObj = new URL(redirectUrl.startsWith('http') ? redirectUrl : 'http://localhost' + redirectUrl);
+          const inviteToken = urlObj.searchParams.get('invite');
+          if (inviteToken) {
+            let invitee_email = '';
+            let invitee_full_name = '';
+            let target_role = 'EMPLOYEE';
+            if (typeof window !== 'undefined') {
+              try {
+                const res = await fetch('/api/onboarding/invite?token=' + encodeURIComponent(inviteToken));
+                if (res.ok) {
+                  const data = await res.json();
+                  if (data.invite) {
+                    invitee_email = data.invite.invitee_email;
+                    invitee_full_name = data.invite.invitee_full_name;
+                    target_role = data.invite.target_role;
+                  }
+                }
+              } catch (e) { console.error('Failed to fetch invite for mock', e); }
+            }
+            if (!invitee_email) {
+              const invite = db.onboarding_invites.find((i: any) =>
+                i.invite_token_hash === inviteToken || i.id === inviteToken ||
+                (i.invite_token_hint && i.invite_token_hint.endsWith('-' + inviteToken.slice(0, 6)))
+              );
+              if (invite) {
+                invitee_email = invite.invitee_email;
+                invitee_full_name = invite.invitee_full_name || invitee_email.split('@')[0];
+                target_role = invite.target_role || 'EMPLOYEE';
+              }
+            }
+            if (invitee_email) {
+              let profile = db.profiles.find((p: any) => p.email === invitee_email);
+              if (!profile) {
+                const newId = 'user-' + Math.random().toString(36).substring(2, 11);
+                profile = { id: newId, email: invitee_email, full_name: invitee_full_name || invitee_email.split('@')[0], avatar_url: null, role: target_role, phone: null, is_active: true, onboarding_status: 'PENDING', created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+                db.profiles.push(profile);
+              }
+              userId = profile.id;
+            }
+          }
+        } catch (_e) { /* fallback to selected user */ }
+      }
+
+      this.cookieManager.set('mock-session-user-id', userId, { path: '/' });
+      if (typeof window !== 'undefined') { window.location.href = redirectUrl; }
+      return { data: { provider: options.provider, url: redirectUrl }, error: null };
     },
 
     signUp: async (options: { email: string; password?: string; options?: { data?: Record<string, any> } }) => {

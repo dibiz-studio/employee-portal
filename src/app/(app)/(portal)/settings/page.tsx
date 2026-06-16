@@ -3,6 +3,7 @@ import {
   Bell,
   Building2,
   CalendarDays,
+  Mail,
   Target,
   User,
   Users,
@@ -40,6 +41,13 @@ const SETTINGS_CARDS = [
     href: "/settings/departments",
     icon: Users,
     permission: "settings:departments" as const,
+  },
+  {
+    title: "Onboarding",
+    description: "Create secure invite links for new joiners",
+    href: "/settings/onboarding",
+    icon: Mail,
+    permission: "settings:roles" as const,
   },
   {
     title: "Roles",
@@ -91,6 +99,8 @@ export default async function SettingsHubPage() {
       <PageHeader
         title="Settings"
         description="Manage your account and organization preferences."
+        backHref="/dashboard"
+        backLabel="Back to Dashboard"
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

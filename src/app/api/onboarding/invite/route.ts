@@ -2,7 +2,7 @@ import { createHash } from "crypto";
 
 import { NextResponse } from "next/server";
 
-import { createClient } from "@/shared/lib/supabase/server";
+import { createAdminClient } from "@/shared/lib/supabase/admin";
 
 function hashInviteToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Missing token" }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const tokenHash = hashInviteToken(token);
   const { data, error } = await supabase
     .from("onboarding_invites")

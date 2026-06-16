@@ -1,11 +1,11 @@
 import { requireRole } from "@/features/dashboard/services/dashboard.service";
 import { DepartmentForm } from "@/features/settings/components/department-form";
-import { asSingleRelation } from "@/shared/lib/utils";
 import { getDepartments } from "@/features/settings/services/settings.service";
 import { EmptyState } from "@/shared/components/data/empty-state";
 import { Breadcrumbs } from "@/shared/components/layout/breadcrumbs";
 import { PageHeader } from "@/shared/components/data/page-header";
 import { StatusBadge } from "@/shared/components/data/status-badge";
+import { asSingleRelation } from "@/shared/lib/utils";
 import {
   Table,
   TableBody,
@@ -59,7 +59,7 @@ export default async function DepartmentsSettingsPage() {
                 <TableCell className="font-medium">{dept.name}</TableCell>
                 <TableCell>{dept.code}</TableCell>
                 <TableCell>
-                  {asSingleRelation(dept.profiles)?.full_name ?? "—"}
+                  {asSingleRelation(dept.profiles)?.full_name ?? "-"}
                 </TableCell>
                 <TableCell>
                   <StatusBadge
@@ -68,7 +68,7 @@ export default async function DepartmentsSettingsPage() {
                   />
                 </TableCell>
                 <TableCell className="max-w-[240px] truncate">
-                  {dept.description ?? "—"}
+                  {dept.description ?? "-"}
                 </TableCell>
               </TableRow>
             ))}

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 import { AppHeader } from "@/shared/components/layout/app-header";
 import { AppSidebar } from "@/shared/components/layout/app-sidebar";
@@ -20,6 +21,14 @@ export function AppShell({
   notificationCount = 0,
 }: AppShellProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const pathname = usePathname();
+  const mainRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (mainRef.current) {
+      mainRef.current.scrollTo(0, 0);
+    }
+  }, [pathname]);
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
@@ -29,7 +38,7 @@ export function AppShell({
           notificationCount={notificationCount}
           onMenuClick={() => setDrawerOpen(true)}
         />
-        <main className="scrollbar-hidden flex-1 overflow-y-auto overflow-x-hidden p-4 pb-24 md:p-6 md:pb-6">
+        <main ref={mainRef} className="scrollbar-hidden flex-1 overflow-y-auto overflow-x-hidden p-4 pb-24 md:p-6 md:pb-6">
           {children}
         </main>
         <MobileBottomNav initialRole={profile.role} />

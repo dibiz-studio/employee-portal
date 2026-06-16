@@ -17,6 +17,14 @@ interface SectionNavProps {
 
 export function SectionNav({ items, className }: SectionNavProps) {
   const pathname = usePathname();
+  const activeItem = items.reduce<SectionNavItem | null>((current, item) => {
+    const matches =
+      pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+    if (!matches) return current;
+    if (!current) return item;
+    return item.href.length > current.href.length ? item : current;
+  }, null);
 
   return (
     <nav
@@ -26,8 +34,7 @@ export function SectionNav({ items, className }: SectionNavProps) {
       )}
     >
       {items.map((item) => {
-        const isActive =
-          pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const isActive = activeItem?.href === item.href;
 
         return (
           <Link

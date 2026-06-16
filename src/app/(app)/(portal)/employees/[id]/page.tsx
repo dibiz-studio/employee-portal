@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+﻿import { notFound } from "next/navigation";
 
 import { EmployeeDetailTabs } from "@/features/employees/components/employee-detail-tabs";
 import {
@@ -61,7 +61,7 @@ export default async function EmployeeDetailPage({
         <div className="flex-1 space-y-1">
           <PageHeader
             title={profile.full_name}
-            description={`${employee.job_title}${department ? ` · ${department.name}` : ""}`}
+            description={`${employee.job_title}${department ? ` - ${department.name}` : ""}`}
             className="pb-0"
             backHref="/employees"
             backLabel="Back to directory"
@@ -85,3 +85,4 @@ export default async function EmployeeDetailPage({
     </div>
   );
 }
+

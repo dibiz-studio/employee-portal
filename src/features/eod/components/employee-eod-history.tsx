@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { FileText } from "lucide-react";
+import { format } from "date-fns";
 
 import type { DailyUpdateRow } from "@/features/eod/services/eod.service";
 import { EmptyState } from "@/shared/components/data/empty-state";
@@ -23,6 +24,7 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 import { formatDate } from "@/shared/lib/utils";
+import { EodArchiveSection } from "./eod-archive-section";
 
 interface EmployeeEodHistoryProps {
   employeeId: string;
@@ -51,8 +53,24 @@ export function EmployeeEodHistory({
     );
   }
 
+  // Group by month
+  const grouped = updates.reduce((acc, update) => {
+    const monthKey = update.report_date.substring(0, 7); // YYYY-MM
+    if (!acc[monthKey]) acc[monthKey] = [];
+    acc[monthKey].push(update);
+    return acc;
+  }, {} as Record<string, DailyUpdateRow[]>);
+
+  const monthKeys = Object.keys(grouped).sort().reverse(); // newest first
+  const currentMonthKey = format(new Date(), "yyyy-MM");
+  
+  // Active month is either current calendar month, or the most recent month if current has no data
+  const activeMonthKey = monthKeys.includes(currentMonthKey) ? currentMonthKey : monthKeys[0];
+  const activeUpdates = grouped[activeMonthKey] || [];
+  const archivedKeys = monthKeys.filter(key => key !== activeMonthKey);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
@@ -76,9 +94,9 @@ export function EmployeeEodHistory({
 
       <Card>
         <CardHeader>
-          <CardTitle>EOD history</CardTitle>
+          <CardTitle>Active EOD — {format(new Date(`${activeMonthKey}-01`), "MMMM yyyy")}</CardTitle>
           <CardDescription>
-            All daily updates recorded for {employeeName}. View the full profile at{" "}
+            Current month&apos;s daily updates recorded for {employeeName}. View the full profile at{" "}
             <Link
               href={`/employees/${employeeId}`}
               className="font-medium text-primary hover:underline"
@@ -89,53 +107,80 @@ export function EmployeeEodHistory({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date</TableHead>
-                <TableHead>Hours</TableHead>
-                <TableHead>Tasks</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {updates.map((update) => (
-                <TableRow key={update.id}>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <p className="font-medium">{formatDate(update.report_date)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {update.reviewed_at
-                          ? `Reviewed ${formatDate(update.reviewed_at)}`
-                          : "Awaiting review"}
-                      </p>
-                    </div>
-                  </TableCell>
-                  <TableCell className="tabular-nums">{update.hours_worked}h</TableCell>
-                  <TableCell className="max-w-[420px]">
-                    <ul className="space-y-1 text-sm">
-                      {update.tasks_completed.map((task, index) => (
-                        <li key={index} className="flex gap-2">
-                          <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                          <span className="line-clamp-2">{task}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    {update.blockers ? (
-                      <Badge variant="warning" className="mt-2">
-                        {update.blockers}
-                      </Badge>
-                    ) : null}
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={update.reviewed_at ? "COMPLETED" : "PENDING"} />
-                  </TableCell>
+          {activeUpdates.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No active updates for this month.</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Hours</TableHead>
+                  <TableHead>Tasks</TableHead>
+                  <TableHead>Status</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {activeUpdates.map((update) => (
+                  <TableRow key={update.id}>
+                    <TableCell className="align-top">
+                      <div className="space-y-1">
+                        <p className="font-medium">{formatDate(update.report_date)}</p>
+                        {update.brand ? (
+                          <Badge variant="outline" className="w-fit">
+                            {update.brand.name}
+                          </Badge>
+                        ) : null}
+                        <p className="text-xs text-muted-foreground">
+                          {update.reviewed_at
+                            ? `Reviewed ${formatDate(update.reviewed_at)}`
+                            : "Awaiting review"}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="align-top tabular-nums">{update.hours_worked}h</TableCell>
+                    <TableCell className="align-top max-w-[420px]">
+                      <ul className="space-y-1 text-sm">
+                        {(Array.isArray(update.tasks_completed) ? update.tasks_completed : []).map((task, index) => (
+                          <li key={index} className="flex gap-2">
+                            <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+                            <span className="line-clamp-2">{task}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      {update.blockers ? (
+                        <Badge variant="warning" className="mt-2">
+                          {update.blockers}
+                        </Badge>
+                      ) : null}
+                    </TableCell>
+                    <TableCell className="align-top">
+                      <StatusBadge status={update.reviewed_at ? "COMPLETED" : "PENDING"} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
+
+      {archivedKeys.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium text-muted-foreground mt-8">Past Months</h3>
+          {archivedKeys.map((key) => {
+            const [year, month] = key.split("-");
+            return (
+              <EodArchiveSection
+                key={key}
+                year={year}
+                month={month}
+                role="EMPLOYEE" // fallback role just to view
+                employeeId={employeeId}
+              />
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

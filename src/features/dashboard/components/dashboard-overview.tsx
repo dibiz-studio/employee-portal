@@ -25,6 +25,7 @@ interface StatConfig {
   key: keyof DashboardStats;
   icon: LucideIcon;
   description?: string;
+  href?: string;
 }
 
 const ROLE_STAT_CONFIG: Record<AppRole, StatConfig[]> = {
@@ -34,42 +35,49 @@ const ROLE_STAT_CONFIG: Record<AppRole, StatConfig[]> = {
       key: "pendingOnboarding",
       icon: UserPlus,
       description: "Users awaiting role approval",
+      href: "/settings/roles",
     },
     {
       title: "Total Employees",
       key: "totalEmployees",
       icon: Users,
       description: "Active profiles in the organization",
+      href: "/employees",
     },
     {
       title: "Pending Leaves",
       key: "pendingLeaves",
       icon: CalendarClock,
       description: "Awaiting approval",
+      href: "/leave",
     },
     {
       title: "Active KPIs",
       key: "activeKpis",
       icon: Target,
       description: "In progress across the org",
+      href: "/kpi",
     },
     {
       title: "KPIs at Risk",
       key: "kpiAtRisk",
       icon: AlertTriangle,
       description: "Need attention",
+      href: "/kpi",
     },
     {
       title: "Departments",
       key: "departments",
       icon: Building2,
       description: "Active departments",
+      href: "/settings/departments",
     },
     {
       title: "Unread Notifications",
       key: "unreadNotifications",
       icon: Bell,
       description: "Your inbox",
+      href: "/notifications",
     },
   ],
   HR: [
@@ -78,31 +86,37 @@ const ROLE_STAT_CONFIG: Record<AppRole, StatConfig[]> = {
       key: "pendingOnboarding",
       icon: UserPlus,
       description: "Users awaiting approval",
+      href: "/settings/roles",
     },
     {
       title: "Total Employees",
       key: "totalEmployees",
       icon: Users,
+      href: "/employees",
     },
     {
       title: "Pending Leaves",
       key: "pendingLeaves",
       icon: CalendarClock,
+      href: "/leave",
     },
     {
       title: "Active KPIs",
       key: "activeKpis",
       icon: Target,
+      href: "/kpi",
     },
     {
       title: "Departments",
       key: "departments",
       icon: Building2,
+      href: "/settings/departments",
     },
     {
       title: "Unread Notifications",
       key: "unreadNotifications",
       icon: Bell,
+      href: "/notifications",
     },
   ],
   MANAGER: [
@@ -110,26 +124,31 @@ const ROLE_STAT_CONFIG: Record<AppRole, StatConfig[]> = {
       title: "Team Members",
       key: "totalEmployees",
       icon: Users,
+      href: "/employees",
     },
     {
       title: "Pending Leaves",
       key: "pendingLeaves",
       icon: CalendarClock,
+      href: "/leave",
     },
     {
       title: "Active KPIs",
       key: "activeKpis",
       icon: Target,
+      href: "/kpi",
     },
     {
       title: "KPIs at Risk",
       key: "kpiAtRisk",
       icon: AlertTriangle,
+      href: "/kpi",
     },
     {
       title: "Unread Notifications",
       key: "unreadNotifications",
       icon: Bell,
+      href: "/notifications",
     },
   ],
   EMPLOYEE: [
@@ -137,21 +156,25 @@ const ROLE_STAT_CONFIG: Record<AppRole, StatConfig[]> = {
       title: "Pending Leaves",
       key: "pendingLeaves",
       icon: CalendarClock,
+      href: "/leave",
     },
     {
       title: "Active KPIs",
       key: "activeKpis",
       icon: Target,
+      href: "/kpi",
     },
     {
       title: "KPIs at Risk",
       key: "kpiAtRisk",
       icon: AlertTriangle,
+      href: "/kpi",
     },
     {
       title: "Unread Notifications",
       key: "unreadNotifications",
       icon: Bell,
+      href: "/notifications",
     },
   ],
   INTERN: [
@@ -159,16 +182,19 @@ const ROLE_STAT_CONFIG: Record<AppRole, StatConfig[]> = {
       title: "Pending Leaves",
       key: "pendingLeaves",
       icon: CalendarClock,
+      href: "/leave",
     },
     {
       title: "Active KPIs",
       key: "activeKpis",
       icon: Target,
+      href: "/kpi",
     },
     {
       title: "Unread Notifications",
       key: "unreadNotifications",
       icon: Bell,
+      href: "/notifications",
     },
   ],
 };
@@ -190,6 +216,7 @@ export function DashboardStatsGrid({ role, stats }: DashboardStatsGridProps) {
           value={stats[config.key]}
           description={config.description}
           icon={config.icon}
+          href={config.href}
         />
       ))}
     </div>

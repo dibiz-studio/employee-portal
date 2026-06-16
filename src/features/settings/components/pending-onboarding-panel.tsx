@@ -29,8 +29,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import { createClient } from "@/shared/lib/supabase/client";
+import { formatDate } from "@/shared/lib/utils";
 import { APP_ROLES, ROLE_LABELS, type AppRole } from "@/shared/types/roles";
+import { approveUserAction } from "@/features/settings/actions/approve-user-action";
 
 export interface PendingUser {
   id: string;
@@ -55,23 +56,13 @@ export function PendingOnboardingPanel({ users }: PendingOnboardingPanelProps) {
   const approveUser = async (userId: string, role: AppRole) => {
     setLoadingId(userId);
     try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("profiles")
-        .update({ role, onboarding_status: "COMPLETED" })
-        .eq("id", userId);
-
-      if (error) throw error;
-
-      await supabase.from("notifications").insert({
-        user_id: userId,
-        type: "SYSTEM",
-        title: "Account approved",
-        message: `Your account has been approved as ${ROLE_LABELS[role]}. You can now access the portal.`,
-        link: "/dashboard",
-      });
+      const result = await approveUserAction(userId, role);
+      if (result.error) throw new Error(result.error);
 
       toast.success("User approved");
+      if ("warning" in result && result.warning) {
+        console.warn("[PendingOnboardingPanel] Notification warning:", result.warning);
+      }
       router.refresh();
     } catch (error) {
       toast.error(
@@ -113,7 +104,7 @@ export function PendingOnboardingPanel({ users }: PendingOnboardingPanelProps) {
                 <TableCell className="font-medium">{user.full_name}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell className="text-muted-foreground text-sm">
-                  {new Date(user.created_at).toLocaleDateString()}
+                  {formatDate(user.created_at)}
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-wrap items-center gap-2">

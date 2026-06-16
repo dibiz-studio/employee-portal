@@ -1,4 +1,5 @@
 import { getServerProfile } from "@/features/auth/services/auth-server.service";
+import { getLeaveNavItems } from "@/features/leave/lib/leave-nav";
 import { getLeaveRequests } from "@/features/leave/services/leave.service";
 import { EmptyState } from "@/shared/components/data/empty-state";
 import { PageHeader } from "@/shared/components/data/page-header";
@@ -14,18 +15,12 @@ import {
 } from "@/shared/components/ui/table";
 import { formatDate } from "@/shared/lib/utils";
 
-const LEAVE_NAV = [
-  { label: "Overview", href: "/leave" },
-  { label: "Apply", href: "/leave/apply" },
-  { label: "History", href: "/leave/history" },
-  { label: "Calendar", href: "/leave/calendar" },
-];
-
 export default async function LeaveHistoryPage() {
   const profile = await getServerProfile();
   if (!profile) return null;
 
   const requests = await getLeaveRequests(profile.id, profile.role);
+  const nav = getLeaveNavItems(profile.role);
 
   return (
     <div className="space-y-6">
@@ -33,7 +28,7 @@ export default async function LeaveHistoryPage() {
         title="Leave History"
         description="All your leave requests and their status."
       />
-      <SectionNav items={LEAVE_NAV} />
+      <SectionNav items={nav} />
 
       {requests.length === 0 ? (
         <EmptyState

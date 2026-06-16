@@ -1,4 +1,5 @@
 import { getServerProfile } from "@/features/auth/services/auth-server.service";
+import { getLeaveNavItems } from "@/features/leave/lib/leave-nav";
 import { getLeaveCalendarEvents } from "@/features/leave/services/leave.service";
 import { EmptyState } from "@/shared/components/data/empty-state";
 import { PageHeader } from "@/shared/components/data/page-header";
@@ -12,17 +13,12 @@ import {
 } from "@/shared/components/ui/card";
 import { formatDate } from "@/shared/lib/utils";
 
-const LEAVE_NAV = [
-  { label: "Overview", href: "/leave" },
-  { label: "Calendar", href: "/leave/calendar" },
-  { label: "History", href: "/leave/history" },
-];
-
 export default async function LeaveCalendarPage() {
   const profile = await getServerProfile();
   if (!profile) return null;
 
   const events = await getLeaveCalendarEvents(profile.id, profile.role);
+  const nav = getLeaveNavItems(profile.role);
 
   return (
     <div className="space-y-6">
@@ -30,7 +26,7 @@ export default async function LeaveCalendarPage() {
         title="Leave Calendar"
         description="Upcoming and pending leave across your team."
       />
-      <SectionNav items={LEAVE_NAV} />
+      <SectionNav items={nav} />
 
       {events.length === 0 ? (
         <EmptyState
@@ -50,7 +46,7 @@ export default async function LeaveCalendarPage() {
               <CardContent className="space-y-1 text-sm">
                 <p className="font-medium">{event.policy_name}</p>
                 <p className="text-muted-foreground">
-                  {formatDate(event.start_date)} – {formatDate(event.end_date)}
+                  {formatDate(event.start_date)} - {formatDate(event.end_date)}
                 </p>
                 <p className="text-muted-foreground">
                   {event.days_requested} day(s)

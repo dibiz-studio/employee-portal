@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: process.cwd(),
   },
+  serverExternalPackages: ["xlsx"],
   images: {
     remotePatterns: [
       {

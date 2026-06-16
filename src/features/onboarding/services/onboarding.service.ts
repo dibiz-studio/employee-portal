@@ -58,7 +58,10 @@ export async function saveOnboardingDraft(params: {
     pan_drive_url: params.draft.pan_drive_url,
     aadhaar_drive_url: params.draft.aadhaar_drive_url,
     submitted_at: submittedAt,
-    metadata: params.draft.metadata ?? {},
+    metadata: {
+      ...(params.draft.metadata ?? {}),
+      signed_joining_letter_drive_url: params.draft.signed_joining_letter_drive_url,
+    },
   };
 
   const { data, error } = await supabase

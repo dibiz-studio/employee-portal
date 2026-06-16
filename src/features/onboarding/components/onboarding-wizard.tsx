@@ -3,7 +3,7 @@
 import { ArrowLeft, ArrowRight, CheckCircle2, Clock3, Loader2, LogOut, Send } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/features/auth/components/auth-provider";
@@ -21,7 +21,7 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Progress } from "@/shared/components/ui/progress";
 import { Separator } from "@/shared/components/ui/separator";
-import { Textarea } from "@/shared/components/ui/textarea";
+
 import { useAuthStore } from "@/shared/stores/auth-store";
 
 const STEP_TITLES = [
@@ -36,6 +36,7 @@ const INITIAL_FORM = {
   fullAadhaar: "",
   panDriveUrl: "",
   aadhaarDriveUrl: "",
+  signedJoiningLetterUrl: "",
 };
 
 export function OnboardingWizard() {
@@ -57,11 +58,21 @@ export function OnboardingWizard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
+  const redirectToDashboard = useCallback(() => {
+    if (typeof window !== "undefined") {
+      window.location.replace("/dashboard");
+      return;
+    }
+
+    router.replace("/dashboard");
+    router.refresh();
+  }, [router]);
+
   useEffect(() => {
     if (profile?.onboarding_status === "COMPLETED") {
-      router.replace("/dashboard");
+      redirectToDashboard();
     }
-  }, [profile?.onboarding_status, router]);
+  }, [profile?.onboarding_status, redirectToDashboard]);
 
   useEffect(() => {
     if (!profile?.id) return;
@@ -70,7 +81,7 @@ export function OnboardingWizard() {
       const fresh = await fetchProfile(profile.id);
       if (fresh?.onboarding_status === "COMPLETED") {
         setProfile(fresh);
-        router.replace("/dashboard");
+        redirectToDashboard();
       }
     };
 
@@ -79,7 +90,7 @@ export function OnboardingWizard() {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [profile?.id, router, setProfile]);
+  }, [profile?.id, redirectToDashboard, setProfile]);
 
   useEffect(() => {
     if (!inviteToken) {
@@ -132,6 +143,7 @@ export function OnboardingWizard() {
           fullAadhaar: existing.full_aadhaar ?? "",
           panDriveUrl: existing.pan_drive_url ?? "",
           aadhaarDriveUrl: existing.aadhaar_drive_url ?? "",
+          signedJoiningLetterUrl: (existing.metadata?.signed_joining_letter_drive_url as string) ?? "",
         });
       } catch (error) {
         const message =
@@ -172,6 +184,7 @@ export function OnboardingWizard() {
           full_aadhaar: form.fullAadhaar || null,
           pan_drive_url: form.panDriveUrl || null,
           aadhaar_drive_url: form.aadhaarDriveUrl || null,
+          signed_joining_letter_drive_url: form.signedJoiningLetterUrl || null,
           metadata: {
             source: "onboarding-wizard",
             invite_token: inviteToken,
@@ -194,6 +207,10 @@ export function OnboardingWizard() {
       toast.error("Please complete all KYC fields before submitting.");
       return;
     }
+    if (invite.joining_letter_file_path && !form.signedJoiningLetterUrl) {
+      toast.error("Please provide a link to the signed joining letter.");
+      return;
+    }
     setIsSubmitting(true);
     try {
       await submitOnboardingIntake({
@@ -205,6 +222,7 @@ export function OnboardingWizard() {
           full_aadhaar: form.fullAadhaar || null,
           pan_drive_url: form.panDriveUrl || null,
           aadhaar_drive_url: form.aadhaarDriveUrl || null,
+          signed_joining_letter_drive_url: form.signedJoiningLetterUrl || null,
           metadata: {
             source: "onboarding-wizard",
             invite_token: inviteToken,
@@ -223,9 +241,7 @@ export function OnboardingWizard() {
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push("/login");
-    router.refresh();
+    await signOut("/login");
   };
 
   if (!inviteToken) {
@@ -235,7 +251,7 @@ export function OnboardingWizard() {
           <CardHeader className="text-center">
             <CardTitle className="text-xl">Onboarding pending</CardTitle>
             <CardDescription>
-              Your profile is still waiting for HR approval. We’ll move you to the dashboard once onboarding is completed.
+              Your profile is still waiting for HR approval. We&apos;ll move you to the dashboard once onboarding is completed.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-4">
@@ -245,7 +261,7 @@ export function OnboardingWizard() {
             </p>
           </CardContent>
           <CardFooter className="justify-center">
-            <Button variant="ghost" onClick={() => void handleSignOut()}>
+            <Button type="button" variant="ghost" onClick={() => void handleSignOut()}>
               <LogOut className="mr-2 h-4 w-4" />
               Sign out
             </Button>
@@ -262,7 +278,7 @@ export function OnboardingWizard() {
           <CardHeader className="space-y-3">
             <CardTitle className="text-2xl">Loading onboarding</CardTitle>
             <CardDescription>
-              We’re checking your invite and loading your saved progress.
+              We&apos;re checking your invite and loading your saved progress.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex items-center gap-3">
@@ -309,7 +325,7 @@ export function OnboardingWizard() {
           <CardHeader className="space-y-3">
             <CardTitle className="text-2xl">Loading session</CardTitle>
             <CardDescription>
-              We’re syncing your profile before opening the onboarding wizard.
+              We&apos;re syncing your profile before opening the onboarding wizard.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex items-center gap-3">
@@ -332,7 +348,7 @@ export function OnboardingWizard() {
             </div>
             <CardTitle className="text-2xl">Your onboarding is under review</CardTitle>
             <CardDescription>
-              We’ve received your details. HR will review the submission and your access will unlock once approval is complete.
+              We&apos;ve received your details. HR will review the submission and your access will unlock once approval is complete.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -341,7 +357,7 @@ export function OnboardingWizard() {
               <div>
                 <p className="text-sm font-medium">Keep this tab handy</p>
                 <p className="text-sm text-muted-foreground">
-                  We’ll redirect you to the dashboard automatically when the profile is approved.
+                  We&apos;ll redirect you to the dashboard automatically when the profile is approved.
                 </p>
               </div>
             </div>
@@ -350,11 +366,11 @@ export function OnboardingWizard() {
             </p>
           </CardContent>
           <CardFooter className="justify-between gap-3">
-            <Button variant="ghost" onClick={() => void handleSignOut()}>
+            <Button type="button" variant="ghost" onClick={() => void handleSignOut()}>
               <LogOut className="mr-2 h-4 w-4" />
               Sign out
             </Button>
-            <Button variant="outline" onClick={() => router.refresh()}>
+            <Button type="button" variant="outline" onClick={() => router.refresh()}>
               Refresh status
             </Button>
           </CardFooter>
@@ -411,7 +427,7 @@ export function OnboardingWizard() {
                       </p>
                       <p className="mt-1 text-sm font-medium">
                         {invite.estimated_stipend
-                          ? `₹${invite.estimated_stipend.toLocaleString("en-IN")}`
+                          ? `INR ${invite.estimated_stipend.toLocaleString("en-IN")}`
                           : "Not shared"}
                       </p>
                     </div>
@@ -474,15 +490,28 @@ export function OnboardingWizard() {
                     onChange={(event) => updateField("aadhaarDriveUrl", event.target.value)}
                   />
                 </div>
+                
+                {invite?.joining_letter_file_path && (
+                  <div className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-4 text-sm text-blue-700">
+                    <p className="mb-2 font-medium">Joining Letter</p>
+                    <p className="mb-3">HR has provided your joining letter. Please review, sign, and upload a copy to your Drive, then paste the link below.</p>
+                    <Button variant="outline" size="sm" asChild className="bg-background">
+                      <a href={invite.joining_letter_file_path} target="_blank" rel="noopener noreferrer">
+                        View Joining Letter
+                      </a>
+                    </Button>
+                  </div>
+                )}
+
                 <div className="space-y-2">
-                  <Label htmlFor="notes">Optional notes</Label>
-                  <Textarea
-                    id="notes"
-                    placeholder="Anything HR should know about your documents?"
-                    rows={4}
-                    disabled
-                    value="Joining letter signing is handled separately by HR in the documents flow."
+                  <Label htmlFor="signedJoiningLetterUrl">Signed Joining Letter (Drive link)</Label>
+                  <Input
+                    id="signedJoiningLetterUrl"
+                    placeholder="https://drive.google.com/..."
+                    value={form.signedJoiningLetterUrl}
+                    onChange={(event) => updateField("signedJoiningLetterUrl", event.target.value)}
                   />
+                  <p className="text-xs text-muted-foreground">Required if HR provided a joining letter above.</p>
                 </div>
               </section>
             ) : null}
@@ -511,6 +540,14 @@ export function OnboardingWizard() {
                         {form.aadhaarDriveUrl || "Not provided"}
                       </p>
                     </div>
+                    {form.signedJoiningLetterUrl && (
+                      <div className="sm:col-span-2">
+                        <p className="text-xs uppercase tracking-wide text-muted-foreground">Signed Joining Letter</p>
+                        <p className="mt-1 text-sm font-medium break-all">
+                          {form.signedJoiningLetterUrl}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm text-emerald-700">
@@ -552,6 +589,7 @@ export function OnboardingWizard() {
         </CardContent>
         <CardFooter className="flex flex-col gap-3 border-t border-border px-6 py-5 md:flex-row md:items-center md:justify-between">
           <Button
+            type="button"
             variant="ghost"
             onClick={() => void handleSignOut()}
             className="w-full md:w-auto"
@@ -561,6 +599,7 @@ export function OnboardingWizard() {
           </Button>
           <div className="flex w-full flex-col gap-3 md:w-auto md:flex-row">
             <Button
+              type="button"
               variant="outline"
               onClick={() => setStep((current) => Math.max(1, current - 1))}
               disabled={step === 1 || isSaving || isSubmitting}
@@ -570,6 +609,7 @@ export function OnboardingWizard() {
             </Button>
             {step < 4 ? (
               <Button
+                type="button"
                 onClick={() => void persistDraft(step + 1)}
                 disabled={isSaving || isSubmitting}
               >
@@ -578,6 +618,7 @@ export function OnboardingWizard() {
               </Button>
             ) : (
               <Button
+                type="button"
                 onClick={() => void handleSubmit()}
                 disabled={isSaving || isSubmitting}
               >
@@ -591,3 +632,5 @@ export function OnboardingWizard() {
     </div>
   );
 }
+
+

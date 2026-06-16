@@ -6,6 +6,8 @@ export interface DailyUpdateRow {
   id: string;
   employee_id: string;
   employee_name: string;
+  brand_id: string | null;
+  brand: { id: string; name: string; slug: string } | null;
   report_date: string;
   tasks_completed: string[];
   hours_worked: number;
@@ -24,8 +26,9 @@ type TeamMemberRow = {
 type DailyUpdateQueryRow = {
   id: string;
   employee_id: string;
+  brand_id: string | null;
   report_date: string;
-  tasks_completed: string[] | null;
+  tasks_completed: string[] | string | null;
   hours_worked: number | string;
   blockers: string | null;
   tomorrow_plan: string | null;
@@ -34,6 +37,7 @@ type DailyUpdateQueryRow = {
   reviewed_at: string | null;
   created_at: string;
   profiles: { full_name: string } | { full_name: string }[] | null;
+  brand: { id: string; name: string; slug: string } | { id: string; name: string; slug: string }[] | null;
 };
 
 async function getTeamMemberIds(managerId: string): Promise<string[]> {
@@ -51,12 +55,23 @@ function mapDailyUpdate(row: Record<string, unknown>): DailyUpdateRow {
   return {
     id: row.id as string,
     employee_id: row.employee_id as string,
+    brand_id: (row.brand_id as string | null) ?? null,
     employee_name:
       asSingleRelation(
         row.profiles as { full_name: string } | { full_name: string }[] | null,
       )?.full_name ?? "Unknown",
+    brand: asSingleRelation(
+      row.brand as { id: string; name: string; slug: string } | { id: string; name: string; slug: string }[] | null,
+    ),
     report_date: row.report_date as string,
-    tasks_completed: (row.tasks_completed as string[]) ?? [],
+    tasks_completed: Array.isArray(row.tasks_completed)
+      ? (row.tasks_completed as string[])
+      : typeof row.tasks_completed === "string"
+        ? (row.tasks_completed as string)
+            .split(/\r?\n+/)
+            .map((task) => task.replace(/^-+\s*/, "").trim())
+            .filter(Boolean)
+        : [],
     hours_worked: Number(row.hours_worked),
     blockers: row.blockers as string | null,
     tomorrow_plan: row.tomorrow_plan as string | null,
@@ -103,7 +118,7 @@ export async function getEodHistory(
   let query = supabase
     .from("daily_updates")
     .select(
-      "id, employee_id, report_date, tasks_completed, hours_worked, blockers, tomorrow_plan, manager_comment, reviewed_by, reviewed_at, created_at, profiles!daily_updates_employee_id_fkey(full_name)",
+      "id, employee_id, brand_id, report_date, tasks_completed, hours_worked, blockers, tomorrow_plan, manager_comment, reviewed_by, reviewed_at, created_at, profiles!daily_updates_employee_id_fkey(full_name), brand:brands(id, name, slug)",
     )
     .order("report_date", { ascending: false });
 
@@ -136,7 +151,7 @@ export async function getTeamEodForReview(
   let query = supabase
     .from("daily_updates")
     .select(
-      "id, employee_id, report_date, tasks_completed, hours_worked, blockers, tomorrow_plan, manager_comment, reviewed_by, reviewed_at, created_at, profiles!daily_updates_employee_id_fkey(full_name)",
+      "id, employee_id, brand_id, report_date, tasks_completed, hours_worked, blockers, tomorrow_plan, manager_comment, reviewed_by, reviewed_at, created_at, profiles!daily_updates_employee_id_fkey(full_name), brand:brands(id, name, slug)",
     )
     .order("report_date", { ascending: false });
 
@@ -176,4 +191,77 @@ export async function getEodByDate(employeeId: string, date: string) {
     .maybeSingle();
 
   return data;
+}
+
+export async function getArchivedMonths(
+  role: AppRole,
+  userId: string,
+  options?: { employeeId?: string }
+): Promise<{ year: string; month: string }[]> {
+  const supabase = await createClient();
+  let query = supabase.from("daily_updates").select("report_date");
+
+  if (options?.employeeId) {
+    query = query.eq("employee_id", options.employeeId);
+  } else if (role === "EMPLOYEE" || role === "INTERN") {
+    query = query.eq("employee_id", userId);
+  } else if (role === "MANAGER") {
+    const teamIds = await getTeamMemberIds(userId);
+    teamIds.push(userId);
+    query = query.in("employee_id", teamIds);
+  }
+
+  const { data, error } = await query;
+  if (error) return [];
+
+  const months = new Set<string>();
+  data.forEach((row: { report_date: string | null }) => {
+    if (row.report_date) {
+      months.add(row.report_date.substring(0, 7));
+    }
+  });
+
+  return Array.from(months)
+    .sort((a, b) => b.localeCompare(a))
+    .map((m) => {
+      const [year, month] = m.split("-");
+      return { year, month };
+    });
+}
+
+export async function getEodByMonth(
+  year: string,
+  month: string,
+  role: AppRole,
+  userId: string,
+  options?: { employeeId?: string }
+): Promise<DailyUpdateRow[]> {
+  const supabase = await createClient();
+  const startDate = `${year}-${month}-01`;
+  const lastDay = new Date(parseInt(year), parseInt(month), 0).getDate();
+  const endDate = `${year}-${month}-${lastDay}`;
+
+  let query = supabase
+    .from("daily_updates")
+    .select(
+      "id, employee_id, brand_id, report_date, tasks_completed, hours_worked, blockers, tomorrow_plan, manager_comment, reviewed_by, reviewed_at, created_at, profiles!daily_updates_employee_id_fkey(full_name), brand:brands(id, name, slug)",
+    )
+    .gte("report_date", startDate)
+    .lte("report_date", endDate)
+    .order("report_date", { ascending: false });
+
+  if (options?.employeeId) {
+    query = query.eq("employee_id", options.employeeId);
+  } else if (role === "EMPLOYEE" || role === "INTERN") {
+    query = query.eq("employee_id", userId);
+  } else if (role === "MANAGER") {
+    const teamIds = await getTeamMemberIds(userId);
+    teamIds.push(userId);
+    query = query.in("employee_id", teamIds);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  return (data ?? []).map((row: DailyUpdateQueryRow) => mapDailyUpdate(row));
 }

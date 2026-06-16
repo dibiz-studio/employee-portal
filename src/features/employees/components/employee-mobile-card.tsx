@@ -35,8 +35,8 @@ export function EmployeeMobileCard({ employee }: EmployeeMobileCardProps) {
             <AvatarFallback>{getInitials(profile.full_name)}</AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1 space-y-1">
-            <div className="flex items-center gap-2">
-              <p className="truncate font-medium">{profile.full_name}</p>
+            <div className="flex min-w-0 items-center gap-2">
+              <p className="min-w-0 truncate font-medium">{profile.full_name}</p>
               <StatusBadge status={employee.employment_status} />
             </div>
             <p className="truncate text-sm text-muted-foreground">

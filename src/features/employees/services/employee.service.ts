@@ -145,7 +145,7 @@ export async function getEmployeeByProfileId(
 export async function getEmployeeStats(role: AppRole, userId: string) {
   const employees = await getEmployees(role, userId);
   const active = employees.filter(
-    (e) => e.employment_status === "ACTIVE" && e.profile.is_active,
+    (e) => e.employment_status !== "TERMINATED" && e.employment_status !== "ON_LEAVE" && e.profile?.is_active,
   ).length;
   const onLeave = employees.filter(
     (e) => e.employment_status === "ON_LEAVE",

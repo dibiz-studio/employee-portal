@@ -6,14 +6,13 @@ import { toast } from "sonner";
 
 import {
   fetchProfile,
-  signOut as authSignOut,
   syncGoogleAvatar,
 } from "@/features/auth/services/auth.service";
 import { createClient } from "@/shared/lib/supabase/client";
 import { useAuthStore } from "@/shared/stores/auth-store";
 
 interface AuthContextValue {
-  signOut: () => Promise<void>;
+  signOut: (redirectTo?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -104,12 +103,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo(
     () => ({
-      signOut: async () => {
-        await authSignOut();
+      signOut: async (redirectTo = "/login") => {
         clearAuth();
+
+        const logoutUrl = `/logout?redirect=${encodeURIComponent(redirectTo)}`;
+
+        if (typeof window !== "undefined") {
+          window.location.replace(logoutUrl);
+          return;
+        }
+
+        router.replace(logoutUrl);
+        router.refresh();
       },
     }),
-    [clearAuth],
+    [clearAuth, router],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

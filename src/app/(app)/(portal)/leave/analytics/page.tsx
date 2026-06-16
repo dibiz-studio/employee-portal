@@ -1,4 +1,5 @@
 import { getServerProfile } from "@/features/auth/services/auth-server.service";
+import { getLeaveNavItems } from "@/features/leave/lib/leave-nav";
 import { getLeaveAnalytics } from "@/features/leave/services/leave.service";
 import { PageHeader } from "@/shared/components/data/page-header";
 import { StatCard } from "@/shared/components/data/stat-card";
@@ -18,17 +19,12 @@ import {
   TableRow,
 } from "@/shared/components/ui/table";
 
-const LEAVE_NAV = [
-  { label: "Overview", href: "/leave" },
-  { label: "Analytics", href: "/leave/analytics" },
-  { label: "History", href: "/leave/history" },
-];
-
 export default async function LeaveAnalyticsPage() {
   const profile = await getServerProfile();
   if (!profile) return null;
 
   const analytics = await getLeaveAnalytics(profile.id, profile.role);
+  const nav = getLeaveNavItems(profile.role);
 
   return (
     <div className="space-y-6">
@@ -36,7 +32,7 @@ export default async function LeaveAnalyticsPage() {
         title="Leave Analytics"
         description="Overview of leave usage and request trends."
       />
-      <SectionNav items={LEAVE_NAV} />
+      <SectionNav items={nav} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard title="Total Requests" value={analytics.totalRequests} />

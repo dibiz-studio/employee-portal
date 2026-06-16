@@ -1,50 +1,62 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import {
+  markAllNotificationsReadAction,
+  markNotificationReadAction,
+} from "@/features/notifications/actions/notifications.actions";
 import type { NotificationRow } from "@/features/notifications/services/notifications.service";
 import { EmptyState } from "@/shared/components/data/empty-state";
 import { StatusBadge } from "@/shared/components/data/status-badge";
 import { Button } from "@/shared/components/ui/button";
-import { createClient } from "@/shared/lib/supabase/client";
 import { formatDateTime } from "@/shared/lib/utils";
 
 interface NotificationsListProps {
   notifications: NotificationRow[];
-  userId: string;
 }
 
-export function NotificationsList({
-  notifications,
-  userId,
-}: NotificationsListProps) {
+export function NotificationsList({ notifications }: NotificationsListProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [items, setItems] = useState(notifications);
+
+  useEffect(() => {
+    setItems(notifications);
+  }, [notifications]);
 
   const markRead = async (id: string) => {
-    const supabase = createClient();
-    await supabase
-      .from("notifications")
-      .update({ is_read: true, read_at: new Date().toISOString() })
-      .eq("id", id)
-      .eq("user_id", userId);
+    const result = await markNotificationReadAction(id);
+    if (result.error) {
+      toast.error(result.error);
+      return false;
+    }
+
+    setItems((current) =>
+      current.map((notification) =>
+        notification.id === id
+          ? { ...notification, is_read: true, read_at: new Date().toISOString() }
+          : notification,
+      ),
+    );
     router.refresh();
+    return true;
   };
 
   const markAllRead = async () => {
     setLoading(true);
     try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("notifications")
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .eq("user_id", userId)
-        .eq("is_read", false);
-
-      if (error) throw error;
+      const result = await markAllNotificationsReadAction();
+      if (result.error) throw new Error(result.error);
+      setItems((current) =>
+        current.map((notification) => ({
+          ...notification,
+          is_read: true,
+          read_at: new Date().toISOString(),
+        })),
+      );
       toast.success("All notifications marked as read");
       router.refresh();
     } catch (error) {
@@ -56,7 +68,7 @@ export function NotificationsList({
     }
   };
 
-  if (notifications.length === 0) {
+  if (items.length === 0) {
     return (
       <EmptyState
         title="No notifications"
@@ -65,7 +77,7 @@ export function NotificationsList({
     );
   }
 
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const unreadCount = items.filter((n) => !n.is_read).length;
 
   return (
     <div className="space-y-4">
@@ -75,7 +87,7 @@ export function NotificationsList({
         </Button>
       ) : null}
       <ul className="divide-y divide-border rounded-lg border">
-        {notifications.map((notification) => (
+        {items.map((notification) => (
           <li
             key={notification.id}
             className={`flex flex-col gap-2 p-4 sm:flex-row sm:items-start sm:justify-between ${
@@ -99,15 +111,20 @@ export function NotificationsList({
             </div>
             <div className="flex gap-2">
               {notification.link ? (
-                <Button variant="outline" size="sm" asChild>
-                  <Link
-                    href={notification.link}
-                    onClick={() => {
-                      if (!notification.is_read) markRead(notification.id);
-                    }}
-                  >
-                    View
-                  </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={async () => {
+                    const link = notification.link;
+                    if (!link) return;
+                    if (!notification.is_read) {
+                      const success = await markRead(notification.id);
+                      if (!success) return;
+                    }
+                    router.push(link);
+                  }}
+                >
+                  View
                 </Button>
               ) : null}
               {!notification.is_read ? (

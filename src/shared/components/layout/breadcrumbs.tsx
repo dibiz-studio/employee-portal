@@ -16,8 +16,8 @@ const SEGMENT_LABELS: Record<string, string> = {
   assign: "Assign",
   analytics: "Analytics",
   leaderboard: "Leaderboard",
-  leave: "Leaves",
-  eod: "EOD Reports",
+  leave: "Leave",
+  eod: "EOD",
   payroll: "Payroll",
   reports: "Reports",
   settings: "Settings",
@@ -46,13 +46,14 @@ interface BreadcrumbsProps {
 
 export function Breadcrumbs({ trailingLabel, className }: BreadcrumbsProps) {
   const pathname = usePathname();
+  if (pathname === "/dashboard") return null;
 
   // Strip route-group segments like (app), (portal), (auth)
   const segments = pathname
     .split("/")
     .filter((s) => s && !s.startsWith("(") && !s.endsWith(")"));
 
-  if (segments.length <= 1) return null; // don't show breadcrumbs on top-level pages
+  if (segments.length === 0) return null;
 
   const crumbs = segments.map((segment, index) => {
     const href = "/" + segments.slice(0, index + 1).join("/");

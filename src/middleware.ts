@@ -2,9 +2,20 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { createClient } from "@/shared/lib/supabase/middleware";
 
-const PUBLIC_ROUTES = ["/login", "/signup", "/forgot-password", "/auth/callback"];
+const PUBLIC_ROUTES = [
+  "/login",
+  "/signup",
+  "/forgot-password",
+  "/logout",
+  "/auth/callback",
+  "/api/onboarding/invite",
+];
 
 function isPublicRoute(pathname: string) {
+  if (pathname.startsWith("/onboarding/")) {
+    return true;
+  }
+
   return PUBLIC_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`),
   );

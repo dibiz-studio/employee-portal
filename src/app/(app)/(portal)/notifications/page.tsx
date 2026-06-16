@@ -14,8 +14,10 @@ export default async function NotificationsPage() {
       <PageHeader
         title="Notifications"
         description="Your alerts, approvals, and system messages."
+        backHref="/dashboard"
+        backLabel="Back to Dashboard"
       />
-      <NotificationsList notifications={notifications} userId={profile.id} />
+      <NotificationsList notifications={notifications} />
     </div>
   );
 }

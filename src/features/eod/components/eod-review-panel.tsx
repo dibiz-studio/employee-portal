@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 import type { DailyUpdateRow } from "@/features/eod/services/eod.service";
 import { Button } from "@/shared/components/ui/button";
+import { Badge } from "@/shared/components/ui/badge";
 import { Textarea } from "@/shared/components/ui/textarea";
 import {
   Table,
@@ -77,13 +78,20 @@ export function EodReviewPanel({ updates, reviewerId }: EodReviewPanelProps) {
         {updates.map((update) => (
           <TableRow key={update.id}>
             <TableCell className="font-medium">
-            <Link
-              href={`/eod/employee/${update.employee_id}`}
-              className="transition-colors hover:text-primary hover:underline"
-            >
-              {update.employee_name}
-            </Link>
-          </TableCell>
+              <div className="space-y-1">
+                <Link
+                  href={`/eod/employee/${update.employee_id}`}
+                  className="transition-colors hover:text-primary hover:underline"
+                >
+                  {update.employee_name}
+                </Link>
+                {update.brand ? (
+                  <Badge variant="outline" className="block w-fit">
+                    {update.brand.name}
+                  </Badge>
+                ) : null}
+              </div>
+            </TableCell>
             <TableCell>{formatDate(update.report_date)}</TableCell>
             <TableCell>{update.hours_worked}h</TableCell>
             <TableCell className="max-w-[240px]">

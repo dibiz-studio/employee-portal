@@ -70,7 +70,7 @@ export function AppSidebar({ initialRole }: AppSidebarProps) {
           ) : (
             <Link
               href="/dashboard"
-              className="text-lg font-bold text-orange-400"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-orange-500/20 text-sm font-bold text-orange-400 hover:bg-orange-500/30 transition-colors"
               aria-label="Dibiz Studio home"
             >
               D

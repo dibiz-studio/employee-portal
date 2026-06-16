@@ -46,8 +46,8 @@ export function LoginForm() {
   } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "tech@dibizsolution.com",
-      password: "Password123!",
+      email: "",
+      password: "",
     },
   });
 

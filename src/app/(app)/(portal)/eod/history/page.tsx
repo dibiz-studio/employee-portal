@@ -1,4 +1,5 @@
 import { getServerProfile } from "@/features/auth/services/auth-server.service";
+import { getEodNavItems } from "@/features/eod/lib/eod-nav";
 import { getEodHistory } from "@/features/eod/services/eod.service";
 import { EmptyState } from "@/shared/components/data/empty-state";
 import { PageHeader } from "@/shared/components/data/page-header";
@@ -9,19 +10,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/components/ui/card";
+import { Badge } from "@/shared/components/ui/badge";
 import { formatDate } from "@/shared/lib/utils";
-
-const EOD_NAV = [
-  { label: "Overview", href: "/eod" },
-  { label: "Submit", href: "/eod/submit" },
-  { label: "History", href: "/eod/history" },
-];
 
 export default async function EodHistoryPage() {
   const profile = await getServerProfile();
   if (!profile) return null;
 
   const updates = await getEodHistory(profile.id, profile.role);
+  const nav = getEodNavItems(profile.role);
 
   return (
     <div className="space-y-6">
@@ -29,7 +26,7 @@ export default async function EodHistoryPage() {
         title="EOD History"
         description="Your past daily update submissions."
       />
-      <SectionNav items={EOD_NAV} />
+      <SectionNav items={nav} />
 
       {updates.length === 0 ? (
         <EmptyState
@@ -42,10 +39,13 @@ export default async function EodHistoryPage() {
             <Card key={update.id}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">
-                  {formatDate(update.report_date)} · {update.hours_worked} hours
+                  {formatDate(update.report_date)} - {update.hours_worked} hours
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
+                {update.brand ? (
+                  <Badge variant="outline">{update.brand.name}</Badge>
+                ) : null}
                 <div>
                   <p className="font-medium">Tasks completed</p>
                   <ul className="mt-1 list-inside list-disc text-muted-foreground">

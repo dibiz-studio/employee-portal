@@ -20,10 +20,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/shared/components/ui/table";
-import { createClient } from "@/shared/lib/supabase/client";
 import { cn } from "@/shared/lib/utils";
 import { APP_ROLES, ROLE_LABELS, type AppRole } from "@/shared/types/roles";
 import type { OnboardingStatus } from "@/shared/stores/auth-store";
+import { approveUserAction } from "@/features/settings/actions/approve-user-action";
 
 interface UserRow {
   id: string;
@@ -45,23 +45,13 @@ export function RolesTable({ users }: RolesTableProps) {
   const handleRoleChange = async (userId: string, role: AppRole) => {
     setLoadingId(userId);
     try {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("profiles")
-        .update({ role, onboarding_status: "COMPLETED" })
-        .eq("id", userId);
-
-      if (error) throw error;
-
-      await supabase.from("notifications").insert({
-        user_id: userId,
-        type: "SYSTEM",
-        title: "Account approved",
-        message: `Your account has been approved as ${ROLE_LABELS[role]}.`,
-        link: "/dashboard",
-      });
+      const result = await approveUserAction(userId, role);
+      if (result.error) throw new Error(result.error);
 
       toast.success("Role updated and user approved");
+      if ("warning" in result && result.warning) {
+        console.warn("[RolesTable] Notification warning:", result.warning);
+      }
       router.refresh();
     } catch (error) {
       toast.error(

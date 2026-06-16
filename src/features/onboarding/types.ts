@@ -32,7 +32,7 @@ export interface OnboardingIntake {
   reviewed_by: string | null;
   reviewed_at: string | null;
   completed_at: string | null;
-  metadata: Record<string, unknown>;
+  metadata: Record<string, unknown> & { signed_joining_letter_drive_url?: string | null };
   created_at: string;
   updated_at: string;
 }
@@ -43,5 +43,6 @@ export interface OnboardingDraft {
   full_aadhaar: string | null;
   pan_drive_url: string | null;
   aadhaar_drive_url: string | null;
+  signed_joining_letter_drive_url?: string | null;
   metadata?: Record<string, unknown>;
 }

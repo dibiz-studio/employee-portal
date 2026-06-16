@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Bell, LogOut, Menu, Settings, User } from "lucide-react";
 
 import { useAuth } from "@/features/auth/components/auth-provider";
@@ -45,14 +44,11 @@ export function AppHeader({
   notificationCount = 0,
   onMenuClick,
 }: AppHeaderProps) {
-  const router = useRouter();
   const { signOut } = useAuth();
   const profile = useAuthStore((state) => state.profile);
 
   const handleSignOut = async () => {
-    await signOut();
-    router.push("/login");
-    router.refresh();
+    await signOut("/login");
   };
 
   return (
@@ -146,9 +142,15 @@ export function AppHeader({
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => void handleSignOut()}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Sign out
+            <DropdownMenuItem asChild>
+              <button
+                type="button"
+                className="flex w-full items-center"
+                onClick={() => void handleSignOut()}
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
+              </button>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
